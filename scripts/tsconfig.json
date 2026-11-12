@@ -1,0 +1,19 @@
+{
+  // Type-check only (npm run typecheck:scripts). Scripts run with Node's built-in type stripping.
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    // Off because seed-admin.ts imports apps/backend/src/admin/auth/admin-credentials.ts, which
+    // sits in the CommonJS backend package; Node loads it fine via module-syntax detection.
+    // erasableSyntaxOnly still guarantees every script can run under type stripping.
+    "verbatimModuleSyntax": false,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node"]
+  },
+  "include": ["*.ts"]
+}

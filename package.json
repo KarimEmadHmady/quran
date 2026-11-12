@@ -1,0 +1,25 @@
+{
+  "name": "quran-app",
+  "private": true,
+  "workspaces": [
+    "packages/text-utils",
+    "apps/backend"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present && npm run typecheck:scripts",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck:scripts": "tsc -p scripts/tsconfig.json",
+    "verify:db": "node --env-file=apps/backend/.env scripts/verify-db.ts",
+    "seed:admin": "node --env-file=apps/backend/.env --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed-admin.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "bcryptjs": "^3.0.3",
+    "mysql2": "^3.24.6",
+    "typescript": "^5.9.3"
+  }
+}

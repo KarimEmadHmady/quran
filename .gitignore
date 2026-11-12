@@ -1,0 +1,23 @@
+# dependencies / build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# database dumps (never commit)
+*.sql
+*.sql.gz
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Product spec drafts (kept local)
+apps/quran-app-v2-spec*.md
