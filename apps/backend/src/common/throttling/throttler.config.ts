@@ -6,9 +6,11 @@ export const THROTTLER = {
   DEFAULT: 'default',
   AUTH: 'auth',
   SEARCH: 'search',
+  EXPORT: 'export',
 } as const;
 
-export type OptInThrottlerName = typeof THROTTLER.AUTH | typeof THROTTLER.SEARCH;
+export type OptInThrottlerName =
+  typeof THROTTLER.AUTH | typeof THROTTLER.SEARCH | typeof THROTTLER.EXPORT;
 
 /**
  * Keys a counter by throttler name + client only (not by route), so each limit is
@@ -27,6 +29,8 @@ type ThrottleEnv = Pick<
   | 'THROTTLE_AUTH_TTL_SECONDS'
   | 'THROTTLE_SEARCH_LIMIT'
   | 'THROTTLE_SEARCH_TTL_SECONDS'
+  | 'THROTTLE_EXPORT_LIMIT'
+  | 'THROTTLE_EXPORT_TTL_SECONDS'
 >;
 
 export function buildThrottlerOptions(env: ThrottleEnv): ThrottlerModuleOptions {
@@ -42,6 +46,7 @@ export function buildThrottlerOptions(env: ThrottleEnv): ThrottlerModuleOptions 
       throttler(THROTTLER.DEFAULT, env.THROTTLE_DEFAULT_LIMIT, env.THROTTLE_DEFAULT_TTL_SECONDS),
       throttler(THROTTLER.AUTH, env.THROTTLE_AUTH_LIMIT, env.THROTTLE_AUTH_TTL_SECONDS),
       throttler(THROTTLER.SEARCH, env.THROTTLE_SEARCH_LIMIT, env.THROTTLE_SEARCH_TTL_SECONDS),
+      throttler(THROTTLER.EXPORT, env.THROTTLE_EXPORT_LIMIT, env.THROTTLE_EXPORT_TTL_SECONDS),
     ],
   };
 }

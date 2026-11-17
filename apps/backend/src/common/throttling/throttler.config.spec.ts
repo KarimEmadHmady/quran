@@ -1,7 +1,7 @@
 import { buildThrottlerOptions, throttleKey } from './throttler.config';
 
 describe('throttler config', () => {
-  it('builds the three named throttlers from env (seconds -> ms)', () => {
+  it('builds the four named throttlers from env (seconds -> ms)', () => {
     const options = buildThrottlerOptions({
       THROTTLE_DEFAULT_LIMIT: 100,
       THROTTLE_DEFAULT_TTL_SECONDS: 60,
@@ -9,6 +9,8 @@ describe('throttler config', () => {
       THROTTLE_AUTH_TTL_SECONDS: 60,
       THROTTLE_SEARCH_LIMIT: 30,
       THROTTLE_SEARCH_TTL_SECONDS: 30,
+      THROTTLE_EXPORT_LIMIT: 10,
+      THROTTLE_EXPORT_TTL_SECONDS: 60,
     });
     if (Array.isArray(options)) throw new Error('expected object options');
     expect(options.errorMessage).toBe('Too many requests, please try again later.');
@@ -16,6 +18,7 @@ describe('throttler config', () => {
       { name: 'default', limit: 100, ttl: 60_000 },
       { name: 'auth', limit: 5, ttl: 60_000 },
       { name: 'search', limit: 30, ttl: 30_000 },
+      { name: 'export', limit: 10, ttl: 60_000 },
     ]);
     expect(options.throttlers.every((t) => t.generateKey === throttleKey)).toBe(true);
   });

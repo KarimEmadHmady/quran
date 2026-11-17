@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import type { EnvVars } from '../config/env.validation';
 import { AdminAuthGuard } from './auth/admin-auth.guard';
+import { AdminContentModule } from './content/admin-content.module';
 import { JWT_AUDIENCE, JWT_ISSUER } from './auth/auth.constants';
 import { AuthController } from './auth/auth.controller';
 import { AuthService } from './auth/auth.service';
@@ -16,6 +17,7 @@ import {
 
 @Module({
   imports: [
+    AdminContentModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<EnvVars, true>) => ({

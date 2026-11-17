@@ -23,6 +23,10 @@ export interface EnvVars {
   THROTTLE_AUTH_TTL_SECONDS: number;
   THROTTLE_SEARCH_LIMIT: number;
   THROTTLE_SEARCH_TTL_SECONDS: number;
+  THROTTLE_EXPORT_LIMIT: number;
+  THROTTLE_EXPORT_TTL_SECONDS: number;
+  /** Chrome/Chromium/Edge executable for PDF export (puppeteer-core); auto-detected if unset. */
+  PDF_BROWSER_PATH?: string;
   /** HS256 secret for admin session JWTs (min 32 chars). */
   JWT_SECRET: string;
   /** Admin session lifetime in seconds (env: duration like "8h"; 5m..7d). */
@@ -70,6 +74,9 @@ export const envSchema = Joi.object<EnvVars>({
   THROTTLE_AUTH_TTL_SECONDS: positiveInt(60),
   THROTTLE_SEARCH_LIMIT: positiveInt(30),
   THROTTLE_SEARCH_TTL_SECONDS: positiveInt(60),
+  THROTTLE_EXPORT_LIMIT: positiveInt(10),
+  THROTTLE_EXPORT_TTL_SECONDS: positiveInt(60),
+  PDF_BROWSER_PATH: Joi.string().max(1024).optional(),
   JWT_SECRET: Joi.string().min(32).max(512).required().messages({
     'string.min': '"JWT_SECRET" must be at least 32 characters (use a long random value)',
   }),

@@ -6,7 +6,7 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:pull": "prisma db pull",
-    "prebuild": "prisma generate",
+    "prebuild": "npm run build -w @quran/text-utils && prisma generate",
     "build": "nest build",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -15,7 +15,10 @@
     "format": "prettier --write \"{src,test}/**/*.ts\"",
     "test": "jest",
     "test:cov": "jest --coverage",
-    "test:db": "jest -c jest.db.config.js --runInBand"
+    "test:db": "jest -c jest.db.config.js --runInBand",
+    "test:write-db": "jest -c jest.write-db.config.js --runInBand",
+    "prelint": "npm run build -w @quran/text-utils",
+    "search:eval": "jest -c jest.db.config.js --runInBand test/search-"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.9",
@@ -25,6 +28,7 @@
     "@nestjs/platform-express": "^11.2.9",
     "@nestjs/throttler": "^6.7.1",
     "@prisma/client": "^6.19.3",
+    "@quran/text-utils": "0.1.0",
     "bcryptjs": "^3.0.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
@@ -32,6 +36,7 @@
     "cookie-parser": "^1.4.7",
     "helmet": "^8.3.0",
     "joi": "^17.13.9",
+    "puppeteer-core": "^25.17.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2"
   },

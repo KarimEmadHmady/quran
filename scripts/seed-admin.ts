@@ -1,9 +1,11 @@
 /**
  * Creates the first admin account. Usage (from the repo root):
  *
- *   ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='a long passphrase' npm run seed:admin
+ *   ADMIN_INITIAL_PASSWORD='a long passphrase' npm run seed:admin
  *
- * (or put ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME in apps/backend/.env, then remove them).
+ * Creates admin@quran.com (name "Admin"); ADMIN_EMAIL / ADMIN_NAME override the defaults.
+ *
+ * (or put ADMIN_INITIAL_PASSWORD in apps/backend/.env for one run, then remove it).
  *
  * - Reads credentials from env only: never from argv, never prompts, never prints them.
  * - Password: at least 12 characters, at most 72 bytes (bcrypt limit). Hashed with bcrypt cost 12.

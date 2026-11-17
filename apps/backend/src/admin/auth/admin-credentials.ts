@@ -19,23 +19,32 @@ export type SeedInput =
   | { ok: true; email: string; password: string; name: string | null }
   | { ok: false; errors: string[] };
 
-/** Validates ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME. Error messages never include values. */
+/** The initial admin account (Phase 6): overridable with ADMIN_EMAIL / ADMIN_NAME. */
+export const DEFAULT_ADMIN_EMAIL = 'admin@quran.com';
+export const DEFAULT_ADMIN_NAME = 'Admin';
+
+/**
+ * Validates the seed input: ADMIN_INITIAL_PASSWORD (required, never stored or printed),
+ * ADMIN_EMAIL (default admin@quran.com), ADMIN_NAME (default Admin).
+ * Error messages never include values.
+ */
 export function validateAdminSeedInput(env: Record<string, string | undefined>): SeedInput {
   const errors: string[] = [];
-  const email = normalizeEmail(env.ADMIN_EMAIL ?? '');
-  const password = env.ADMIN_PASSWORD ?? '';
-  const name = (env.ADMIN_NAME ?? '').trim();
+  const email = normalizeEmail(env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL);
+  const password = env.ADMIN_INITIAL_PASSWORD ?? '';
+  const name = (env.ADMIN_NAME || DEFAULT_ADMIN_NAME).trim();
 
-  if (!email) errors.push('ADMIN_EMAIL is required');
-  else if (!EMAIL.test(email) || email.length > EMAIL_MAX_LENGTH) {
+  if (!EMAIL.test(email) || email.length > EMAIL_MAX_LENGTH) {
     errors.push(`ADMIN_EMAIL must be a valid email address (max ${EMAIL_MAX_LENGTH} chars)`);
   }
 
-  if (!password) errors.push('ADMIN_PASSWORD is required');
+  if (!password) errors.push('ADMIN_INITIAL_PASSWORD is required');
   else if ([...password].length < PASSWORD_MIN_LENGTH) {
-    errors.push(`ADMIN_PASSWORD must be at least ${PASSWORD_MIN_LENGTH} characters`);
+    errors.push(`ADMIN_INITIAL_PASSWORD must be at least ${PASSWORD_MIN_LENGTH} characters`);
   } else if (Buffer.byteLength(password, 'utf8') > PASSWORD_MAX_BYTES) {
-    errors.push(`ADMIN_PASSWORD must be at most ${PASSWORD_MAX_BYTES} bytes (bcrypt limit)`);
+    errors.push(
+      `ADMIN_INITIAL_PASSWORD must be at most ${PASSWORD_MAX_BYTES} bytes (bcrypt limit)`,
+    );
   }
 
   if (name.length > 100) errors.push('ADMIN_NAME must be at most 100 characters');

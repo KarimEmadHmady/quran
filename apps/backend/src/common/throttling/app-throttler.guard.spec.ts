@@ -47,6 +47,8 @@ describe('AppThrottlerGuard', () => {
             THROTTLE_AUTH_TTL_SECONDS: 60,
             THROTTLE_SEARCH_LIMIT: 3,
             THROTTLE_SEARCH_TTL_SECONDS: 60,
+            THROTTLE_EXPORT_LIMIT: 10,
+            THROTTLE_EXPORT_TTL_SECONDS: 60,
           }),
         ),
       ],

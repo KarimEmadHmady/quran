@@ -1,0 +1,1474 @@
+{
+  "version": 1,
+  "description": "Golden queries for the search engine (claude.md 5.12). Refs are \"sura:ayah\". For phrase-type categories, expected = every ayah whose normalized text_simple contains the normalized query as whole words (generated from the DB and re-checked by test/search-golden.db-spec.ts). Reference and negative cases are fixed by intent. For word_order, expected = every ayah containing all query words (any order, with multiplicity), also re-checked against the DB. Typo-tier cases (Phase 3) carry \"intended\": expected = every ayah containing the intended query as a phrase, re-checked against the DB. Voice-tier cases (Phase 4, type=voice) also carry \"intended\", scored the same way.",
+  "cases": [
+    {
+      "id": "reference-01",
+      "q": "2:255",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"]
+    },
+    {
+      "id": "reference-02",
+      "q": "٢:٢٥٥",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"],
+      "note": "Arabic-Indic digits"
+    },
+    {
+      "id": "reference-03",
+      "q": "البقرة 255",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"]
+    },
+    {
+      "id": "reference-04",
+      "q": "البقره ٢٥٥",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"],
+      "note": "heh spelling + Arabic-Indic digits"
+    },
+    {
+      "id": "reference-05",
+      "q": "سورة الكهف",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["18:1"],
+      "note": "sura name only: open at ayah 1"
+    },
+    {
+      "id": "reference-06",
+      "q": "يس",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["36:1"],
+      "note": "sura name that is also the text of 36:1"
+    },
+    {
+      "id": "reference-07",
+      "q": "الفاتحة",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["1:1"]
+    },
+    {
+      "id": "reference-08",
+      "q": "114:6",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["114:6"]
+    },
+    {
+      "id": "reference-09",
+      "q": "الإخلاص 4",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["112:4"]
+    },
+    {
+      "id": "reference-10",
+      "q": "سورة الملك 1",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["67:1"]
+    },
+    {
+      "id": "reference-11",
+      "q": "[البقرة: 255]",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"],
+      "note": "mushaf-style citation"
+    },
+    {
+      "id": "reference-12",
+      "q": "يوسف 111",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["12:111"],
+      "note": "repeated digits: normalize() would read 11"
+    },
+    {
+      "id": "reference-13",
+      "q": "سورة يس",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["36:1"]
+    },
+    {
+      "id": "reference-14",
+      "q": "آية 35 من سورة النور",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["24:35"],
+      "note": "ayah-first form"
+    },
+    {
+      "id": "reference-15",
+      "q": "۲:۲۵۵",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"],
+      "note": "Persian digits"
+    },
+    {
+      "id": "reference-16",
+      "q": "سورة 18",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["18:1"],
+      "note": "sura number only"
+    },
+    {
+      "id": "reference-17",
+      "q": "آل عمران ١٩٠",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["3:190"],
+      "note": "two-word sura name"
+    },
+    {
+      "id": "reference-18",
+      "q": "الرحمن",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["55:1"],
+      "note": "bare sura name that is also a Quran word: reference first (ambiguous)"
+    },
+    {
+      "id": "reference-19",
+      "q": "تبارك 1",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["67:1"],
+      "note": "alias, accepted because an ayah number follows"
+    },
+    {
+      "id": "reference-20",
+      "q": "بقرة 286",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:286"],
+      "note": "name without the article + number"
+    },
+    {
+      "id": "reference-21",
+      "q": "سورة الشورى 11",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["42:11"]
+    },
+    {
+      "id": "reference-22",
+      "q": "(١١٢:١)",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["112:1"],
+      "note": "brackets + Arabic-Indic digits"
+    },
+    {
+      "id": "reference-23",
+      "q": "سورة البقرة آية 255",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["2:255"],
+      "note": "with both keywords"
+    },
+    {
+      "id": "reference-24",
+      "q": "الاسراء 1",
+      "category": "reference",
+      "tier": "clean",
+      "expected": ["17:1"],
+      "note": "hamza dropped"
+    },
+    {
+      "id": "phrase-01",
+      "q": "بسم الله الرحمن الرحيم",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["1:1", "27:30"]
+    },
+    {
+      "id": "phrase-02",
+      "q": "الحمد لله رب العالمين",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["1:2", "10:10", "39:75", "40:65"]
+    },
+    {
+      "id": "phrase-03",
+      "q": "إياك نعبد وإياك نستعين",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["1:5"]
+    },
+    {
+      "id": "phrase-04",
+      "q": "اهدنا الصراط المستقيم",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["1:6"]
+    },
+    {
+      "id": "phrase-05",
+      "q": "غير المغضوب عليهم ولا الضالين",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["1:7"]
+    },
+    {
+      "id": "phrase-06",
+      "q": "الله لا إله إلا هو الحي القيوم",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["2:255", "3:2"]
+    },
+    {
+      "id": "phrase-07",
+      "q": "قل هو الله أحد",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["112:1"]
+    },
+    {
+      "id": "phrase-08",
+      "q": "الله الصمد",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["112:2"]
+    },
+    {
+      "id": "phrase-09",
+      "q": "قل أعوذ برب الفلق",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["113:1"]
+    },
+    {
+      "id": "phrase-10",
+      "q": "فبأي آلاء ربكما تكذبان",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": [
+        "55:13",
+        "55:16",
+        "55:18",
+        "55:21",
+        "55:23",
+        "55:25",
+        "55:28",
+        "55:30",
+        "55:32",
+        "55:34",
+        "55:36",
+        "55:38",
+        "55:40",
+        "55:42",
+        "55:45",
+        "55:47",
+        "55:49",
+        "55:51",
+        "55:53",
+        "55:55",
+        "55:57",
+        "55:59",
+        "55:61",
+        "55:63",
+        "55:65",
+        "55:67",
+        "55:69",
+        "55:71",
+        "55:73",
+        "55:75",
+        "55:77"
+      ],
+      "note": "repeated refrain: 31 ayahs in Ar-Rahman"
+    },
+    {
+      "id": "phrase-11",
+      "q": "إنا أعطيناك الكوثر",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["108:1"]
+    },
+    {
+      "id": "phrase-12",
+      "q": "إنا أنزلناه في ليلة القدر",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["97:1"],
+      "note": "97:1 is the word-count outlier between scripts"
+    },
+    {
+      "id": "phrase-13",
+      "q": "إن الإنسان لفي خسر",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["103:2"]
+    },
+    {
+      "id": "phrase-14",
+      "q": "فإن مع العسر يسرا",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["94:5"]
+    },
+    {
+      "id": "phrase-15",
+      "q": "إن مع العسر يسرا",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["94:6"],
+      "note": "must rank 94:6 (exact) above 94:5 (prefixed fa)"
+    },
+    {
+      "id": "phrase-16",
+      "q": "ذلك الكتاب لا ريب فيه",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["2:2"]
+    },
+    {
+      "id": "phrase-17",
+      "q": "وما خلقت الجن والإنس إلا ليعبدون",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["51:56"]
+    },
+    {
+      "id": "phrase-18",
+      "q": "وقل رب زدني علما",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["20:114"]
+    },
+    {
+      "id": "phrase-19",
+      "q": "رب اشرح لي صدري",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["20:25"]
+    },
+    {
+      "id": "phrase-20",
+      "q": "حسبنا الله ونعم الوكيل",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["3:173"]
+    },
+    {
+      "id": "phrase-21",
+      "q": "إنا لله وإنا إليه راجعون",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["2:156"]
+    },
+    {
+      "id": "phrase-22",
+      "q": "يا أيها الذين آمنوا",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": [
+        "2:104",
+        "2:153",
+        "2:172",
+        "2:178",
+        "2:183",
+        "2:208",
+        "2:254",
+        "2:264",
+        "2:267",
+        "2:278",
+        "2:282",
+        "3:100",
+        "3:102",
+        "3:118",
+        "3:130",
+        "3:149",
+        "3:156",
+        "3:200",
+        "4:19",
+        "4:29",
+        "4:43",
+        "4:59",
+        "4:71",
+        "4:94",
+        "4:135",
+        "4:136",
+        "4:144",
+        "5:1",
+        "5:2",
+        "5:6",
+        "5:8",
+        "5:11",
+        "5:35",
+        "5:51",
+        "5:54",
+        "5:57",
+        "5:87",
+        "5:90",
+        "5:94",
+        "5:95",
+        "5:101",
+        "5:105",
+        "5:106",
+        "8:15",
+        "8:20",
+        "8:24",
+        "8:27",
+        "8:29",
+        "8:45",
+        "9:23",
+        "9:28",
+        "9:34",
+        "9:38",
+        "9:119",
+        "9:123",
+        "22:77",
+        "24:21",
+        "24:27",
+        "24:58",
+        "33:9",
+        "33:41",
+        "33:49",
+        "33:53",
+        "33:56",
+        "33:69",
+        "33:70",
+        "47:7",
+        "47:33",
+        "49:1",
+        "49:2",
+        "49:6",
+        "49:11",
+        "49:12",
+        "57:28",
+        "58:9",
+        "58:11",
+        "58:12",
+        "59:18",
+        "60:1",
+        "60:10",
+        "60:13",
+        "61:2",
+        "61:10",
+        "61:14",
+        "62:9",
+        "63:9",
+        "64:14",
+        "66:6",
+        "66:8"
+      ],
+      "note": "vocative: one word in Uthmani, two in simple"
+    },
+    {
+      "id": "phrase-23",
+      "q": "علم القرآن",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["55:2"]
+    },
+    {
+      "id": "phrase-24",
+      "q": "سبح اسم ربك الأعلى",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["87:1"]
+    },
+    {
+      "id": "phrase-25",
+      "q": "هل أتاك حديث الغاشية",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["88:1"]
+    },
+    {
+      "id": "phrase-26",
+      "q": "لقد خلقنا الإنسان في أحسن تقويم",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["95:4"]
+    },
+    {
+      "id": "phrase-27",
+      "q": "إن الله مع الصابرين",
+      "category": "phrase",
+      "tier": "clean",
+      "expected": ["2:153", "8:46"]
+    },
+    {
+      "id": "hamza_diacritics-01",
+      "q": "اياك نعبد واياك نستعين",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["1:5"],
+      "note": "no hamza"
+    },
+    {
+      "id": "hamza_diacritics-02",
+      "q": "أياك نعبد",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["1:5"],
+      "note": "wrong hamza seat"
+    },
+    {
+      "id": "hamza_diacritics-03",
+      "q": "إِيَّاكَ نَعْبُدُ",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["1:5"],
+      "note": "full tashkeel"
+    },
+    {
+      "id": "hamza_diacritics-04",
+      "q": "قل هو الله احد",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["112:1"],
+      "note": "no hamza"
+    },
+    {
+      "id": "hamza_diacritics-05",
+      "q": "قل اعوذ برب الناس",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["114:1"],
+      "note": "no hamza"
+    },
+    {
+      "id": "hamza_diacritics-06",
+      "q": "فباي الاء ربكما تكذبان",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": [
+        "55:13",
+        "55:16",
+        "55:18",
+        "55:21",
+        "55:23",
+        "55:25",
+        "55:28",
+        "55:30",
+        "55:32",
+        "55:34",
+        "55:36",
+        "55:38",
+        "55:40",
+        "55:42",
+        "55:45",
+        "55:47",
+        "55:49",
+        "55:51",
+        "55:53",
+        "55:55",
+        "55:57",
+        "55:59",
+        "55:61",
+        "55:63",
+        "55:65",
+        "55:67",
+        "55:69",
+        "55:71",
+        "55:73",
+        "55:75",
+        "55:77"
+      ],
+      "note": "no hamza / madda"
+    },
+    {
+      "id": "hamza_diacritics-07",
+      "q": "الم نشرح لك صدرك",
+      "category": "hamza_diacritics",
+      "tier": "clean",
+      "expected": ["94:1"],
+      "note": "no hamza"
+    },
+    {
+      "id": "teh_alef_variants-01",
+      "q": "ربنا اتنا في الدنيا حسنه",
+      "category": "teh_alef_variants",
+      "tier": "clean",
+      "expected": ["2:201"],
+      "note": "heh for teh marbuta, no madda"
+    },
+    {
+      "id": "teh_alef_variants-02",
+      "q": "عيسي ابن مريم",
+      "category": "teh_alef_variants",
+      "tier": "clean",
+      "expected": [
+        "2:87",
+        "2:253",
+        "3:45",
+        "4:157",
+        "4:171",
+        "5:110",
+        "5:112",
+        "5:114",
+        "5:116",
+        "19:34",
+        "61:6",
+        "61:14"
+      ],
+      "note": "yeh for alef maqsura"
+    },
+    {
+      "id": "teh_alef_variants-03",
+      "q": "كل نفس ذائقه الموت",
+      "category": "teh_alef_variants",
+      "tier": "clean",
+      "expected": ["3:185", "21:35", "29:57"],
+      "note": "heh for teh marbuta"
+    },
+    {
+      "id": "stopwords-01",
+      "q": "لا اله الا هو",
+      "category": "stopwords",
+      "tier": "clean",
+      "expected": [
+        "2:163",
+        "2:255",
+        "3:2",
+        "3:6",
+        "3:18",
+        "4:87",
+        "6:102",
+        "6:106",
+        "7:158",
+        "9:31",
+        "9:129",
+        "11:14",
+        "13:30",
+        "20:8",
+        "20:98",
+        "23:116",
+        "27:26",
+        "28:70",
+        "28:88",
+        "35:3",
+        "39:6",
+        "40:3",
+        "40:62",
+        "40:65",
+        "44:8",
+        "59:22",
+        "59:23",
+        "64:13",
+        "73:9"
+      ],
+      "note": "only short/common words: needs IDF, no stopword removal"
+    },
+    {
+      "id": "stopwords-02",
+      "q": "وهو على كل شيء قدير",
+      "category": "stopwords",
+      "tier": "clean",
+      "expected": ["5:120", "11:4", "30:50", "42:9", "57:2", "64:1", "67:1"]
+    },
+    {
+      "id": "partial-01",
+      "q": "تبارك الذي بيده",
+      "category": "partial",
+      "tier": "clean",
+      "expected": ["67:1"],
+      "note": "start of 67:1"
+    },
+    {
+      "id": "partial-02",
+      "q": "عم يتساءلون",
+      "category": "partial",
+      "tier": "clean",
+      "expected": ["78:1"],
+      "note": "start of 78:1"
+    },
+    {
+      "id": "partial-03",
+      "q": "إذا جاء نصر الله",
+      "category": "partial",
+      "tier": "clean",
+      "expected": ["110:1"],
+      "note": "start of 110:1"
+    },
+    {
+      "id": "partial-04",
+      "q": "والشمس وضحاها",
+      "category": "partial",
+      "tier": "clean",
+      "expected": ["91:1"],
+      "note": "91:1"
+    },
+    {
+      "id": "partial-05",
+      "q": "اقرأ باسم ربك",
+      "category": "partial",
+      "tier": "clean",
+      "expected": ["96:1"],
+      "note": "start of 96:1"
+    },
+    {
+      "id": "word_order-01",
+      "q": "نعبد إياك",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["1:5"],
+      "note": "reversed"
+    },
+    {
+      "id": "word_order-02",
+      "q": "الصمد الله",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["112:2"],
+      "note": "reversed"
+    },
+    {
+      "id": "word_order-03",
+      "q": "الكوثر أعطيناك",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["108:1"],
+      "note": "reversed"
+    },
+    {
+      "id": "word_order-04",
+      "q": "خسر الإنسان",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["103:2"],
+      "note": "reversed, words skipped"
+    },
+    {
+      "id": "word_order-05",
+      "q": "قل الله أحد",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["3:73", "72:22", "112:1"],
+      "note": "in order with a gap"
+    },
+    {
+      "id": "word_order-06",
+      "q": "لا إله الحي القيوم",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["2:255", "3:2"],
+      "note": "in order with a gap"
+    },
+    {
+      "id": "word_order-07",
+      "q": "بسم الرحيم",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["1:1", "27:30"],
+      "note": "in order with a gap"
+    },
+    {
+      "id": "word_order-08",
+      "q": "ربك الأعلى سبح",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["87:1"],
+      "note": "rotated"
+    },
+    {
+      "id": "word_order-09",
+      "q": "الجن والإنس ليعبدون",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["51:56"],
+      "note": "in order with a gap"
+    },
+    {
+      "id": "word_order-10",
+      "q": "الصابرين مع الله",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["2:153", "2:249", "8:46", "8:66"],
+      "note": "reversed"
+    },
+    {
+      "id": "word_order-11",
+      "q": "يسرا العسر",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["94:5", "94:6"],
+      "note": "reversed"
+    },
+    {
+      "id": "word_order-12",
+      "q": "رب العالمين الحمد",
+      "category": "word_order",
+      "tier": "clean",
+      "expected": ["1:2", "10:10", "39:75", "40:65", "45:36"],
+      "note": "rotated"
+    },
+    {
+      "id": "uthmani_spelling-01",
+      "q": "اقيموا الصلوة",
+      "intended": "اقيموا الصلاة",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["6:72"],
+      "note": "الصلوة (rasm) for الصلاة"
+    },
+    {
+      "id": "uthmani_spelling-02",
+      "q": "واتوا الزكوة",
+      "intended": "واتوا الزكاة",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": [
+        "2:43",
+        "2:83",
+        "2:110",
+        "2:277",
+        "4:77",
+        "9:5",
+        "9:11",
+        "22:41",
+        "22:78",
+        "24:56",
+        "58:13",
+        "73:20"
+      ],
+      "note": "الزكوة for الزكاة"
+    },
+    {
+      "id": "uthmani_spelling-03",
+      "q": "الربوا",
+      "intended": "الربا",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["2:275", "2:276", "2:278", "3:130", "4:161"],
+      "note": "الربوا for الربا"
+    },
+    {
+      "id": "uthmani_spelling-04",
+      "q": "ذالك الكتاب لا ريب فيه",
+      "intended": "ذلك الكتاب لا ريب فيه",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["2:2"],
+      "note": "ذالك for ذلك"
+    },
+    {
+      "id": "uthmani_spelling-05",
+      "q": "بسم الله الرحمان الرحيم",
+      "intended": "بسم الله الرحمن الرحيم",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["1:1", "27:30"],
+      "note": "الرحمان (spoken) for الرحمن"
+    },
+    {
+      "id": "uthmani_spelling-06",
+      "q": "هاذا صراط مستقيم",
+      "intended": "هذا صراط مستقيم",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["3:51", "19:36", "36:61", "43:61", "43:64"],
+      "note": "هاذا for هذا"
+    },
+    {
+      "id": "uthmani_spelling-07",
+      "q": "الحيوة الدنيا",
+      "intended": "الحياة الدنيا",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": [
+        "2:85",
+        "2:86",
+        "2:204",
+        "2:212",
+        "3:14",
+        "3:117",
+        "3:185",
+        "4:74",
+        "4:94",
+        "4:109",
+        "6:32",
+        "6:70",
+        "6:130",
+        "7:32",
+        "7:51",
+        "7:152",
+        "9:38",
+        "9:55",
+        "10:23",
+        "10:24",
+        "10:64",
+        "10:88",
+        "10:98",
+        "11:15",
+        "13:26",
+        "13:34",
+        "14:3",
+        "14:27",
+        "16:107",
+        "18:28",
+        "18:45",
+        "18:46",
+        "18:104",
+        "20:72",
+        "20:131",
+        "23:33",
+        "24:33",
+        "28:60",
+        "28:61",
+        "28:79",
+        "29:25",
+        "29:64",
+        "30:7",
+        "31:33",
+        "33:28",
+        "35:5",
+        "39:26",
+        "40:39",
+        "40:51",
+        "41:16",
+        "41:31",
+        "42:36",
+        "43:32",
+        "43:35",
+        "45:35",
+        "47:36",
+        "53:29",
+        "57:20",
+        "79:38",
+        "87:16"
+      ],
+      "note": "الحيوة for الحياة"
+    },
+    {
+      "id": "uthmani_spelling-08",
+      "q": "لاكن الله",
+      "intended": "لكن الله",
+      "category": "uthmani_spelling",
+      "tier": "typo",
+      "expected": ["4:166"],
+      "note": "لاكن for لكن"
+    },
+    {
+      "id": "typo-01",
+      "q": "الحمد لله رب العالمن",
+      "intended": "الحمد لله رب العالمين",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:2", "10:10", "39:75", "40:65"],
+      "note": "missing letter (claude.md 5.7 example)"
+    },
+    {
+      "id": "typo-02",
+      "q": "الرحمن الرحم",
+      "intended": "الرحمن الرحيم",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:1", "1:3", "2:163", "27:30", "41:2", "59:22"],
+      "note": "missing letter (5.12)"
+    },
+    {
+      "id": "typo-03",
+      "q": "الرحمن الرحمم",
+      "intended": "الرحمن الرحيم",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:1", "1:3", "2:163", "27:30", "41:2", "59:22"],
+      "note": "wrong letter (5.12)"
+    },
+    {
+      "id": "typo-04",
+      "q": "الرحمن الرحنم",
+      "intended": "الرحمن الرحيم",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:1", "1:3", "2:163", "27:30", "41:2", "59:22"],
+      "note": "transposition (5.12)"
+    },
+    {
+      "id": "typo-05",
+      "q": "مالك يوم الدبن",
+      "intended": "مالك يوم الدين",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:4"],
+      "note": "keyboard neighbour ي/ب"
+    },
+    {
+      "id": "typo-06",
+      "q": "اهدنا الصراط المستقين",
+      "intended": "اهدنا الصراط المستقيم",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["1:6"],
+      "note": "wrong last letter"
+    },
+    {
+      "id": "typo-07",
+      "q": "قل اعوذ برب الفلف",
+      "intended": "قل اعوذ برب الفلق",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["113:1"],
+      "note": "keyboard neighbour ق/ف"
+    },
+    {
+      "id": "typo-08",
+      "q": "الله لا اله الا هو الحي القيوك",
+      "intended": "الله لا اله الا هو الحي القيوم",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["2:255", "3:2"],
+      "note": "wrong last letter"
+    },
+    {
+      "id": "typo-09",
+      "q": "انا اعطيناك الكوثرر",
+      "intended": "انا اعطيناك الكوثر",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["108:1"],
+      "note": "doubled letter"
+    },
+    {
+      "id": "typo-10",
+      "q": "تبارك الذي بيده الملل",
+      "intended": "تبارك الذي بيده الملك",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["67:1"],
+      "note": "wrong letter"
+    },
+    {
+      "id": "typo-11",
+      "q": "وقل رب زدني علنا",
+      "intended": "وقل رب زدني علما",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["20:114"],
+      "note": "keyboard neighbour ن/م"
+    },
+    {
+      "id": "typo-12",
+      "q": "فباي الاء ربكما تكذيان",
+      "intended": "فباي الاء ربكما تكذبان",
+      "category": "typo",
+      "tier": "typo",
+      "expected": [
+        "55:13",
+        "55:16",
+        "55:18",
+        "55:21",
+        "55:23",
+        "55:25",
+        "55:28",
+        "55:30",
+        "55:32",
+        "55:34",
+        "55:36",
+        "55:38",
+        "55:40",
+        "55:42",
+        "55:45",
+        "55:47",
+        "55:49",
+        "55:51",
+        "55:53",
+        "55:55",
+        "55:57",
+        "55:59",
+        "55:61",
+        "55:63",
+        "55:65",
+        "55:67",
+        "55:69",
+        "55:71",
+        "55:73",
+        "55:75",
+        "55:77"
+      ],
+      "note": "keyboard neighbour ب/ي"
+    },
+    {
+      "id": "typo-13",
+      "q": "حسبنا الله ونعم الوكبل",
+      "intended": "حسبنا الله ونعم الوكيل",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["3:173"],
+      "note": "keyboard neighbour ي/ب"
+    },
+    {
+      "id": "typo-14",
+      "q": "انا لله وانا اليه راجعوت",
+      "intended": "انا لله وانا اليه راجعون",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["2:156"],
+      "note": "keyboard neighbour ن/ت"
+    },
+    {
+      "id": "typo-15",
+      "q": "وما خلقت الجن والانس الا ليعبدوم",
+      "intended": "وما خلقت الجن والانس الا ليعبدون",
+      "category": "typo",
+      "tier": "typo",
+      "expected": ["51:56"],
+      "note": "keyboard neighbour ن/م"
+    },
+    {
+      "id": "confusable_letters-01",
+      "q": "غير المغضوب عليهم ولا الظالين",
+      "intended": "غير المغضوب عليهم ولا الضالين",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["1:7"],
+      "note": "ظ for ض (5.12): الضالين/الظالمين both offered"
+    },
+    {
+      "id": "confusable_letters-02",
+      "q": "الله السمد",
+      "intended": "الله الصمد",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["112:2"],
+      "note": "س for ص"
+    },
+    {
+      "id": "confusable_letters-03",
+      "q": "ان الانسان لفي خصر",
+      "intended": "ان الانسان لفي خسر",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["103:2"],
+      "note": "ص for س"
+    },
+    {
+      "id": "confusable_letters-04",
+      "q": "اهدنا السراط المستقيم",
+      "intended": "اهدنا الصراط المستقيم",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["1:6"],
+      "note": "س for ص"
+    },
+    {
+      "id": "confusable_letters-05",
+      "q": "قل اعوز برب الناس",
+      "intended": "قل اعوذ برب الناس",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["114:1"],
+      "note": "ز for ذ"
+    },
+    {
+      "id": "confusable_letters-06",
+      "q": "هدى للمطقين",
+      "intended": "هدى للمتقين",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["2:2"],
+      "note": "ط for ت"
+    },
+    {
+      "id": "confusable_letters-07",
+      "q": "كل نفس زائقة الموت",
+      "intended": "كل نفس ذائقة الموت",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["3:185", "21:35", "29:57"],
+      "note": "ز for ذ"
+    },
+    {
+      "id": "confusable_letters-08",
+      "q": "الرهمن الرهيم",
+      "intended": "الرحمن الرحيم",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["1:1", "1:3", "2:163", "27:30", "41:2", "59:22"],
+      "note": "ه for ح"
+    },
+    {
+      "id": "confusable_letters-09",
+      "q": "قل هو الله اهد",
+      "intended": "قل هو الله احد",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["112:1"],
+      "note": "ه for ح"
+    },
+    {
+      "id": "confusable_letters-10",
+      "q": "الم نشرح لك سدرك",
+      "intended": "الم نشرح لك صدرك",
+      "category": "confusable_letters",
+      "tier": "typo",
+      "expected": ["94:1"],
+      "note": "س for ص"
+    },
+    {
+      "id": "merge_split-01",
+      "q": "قلهوالله احد",
+      "intended": "قل هو الله احد",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["112:1"],
+      "note": "words glued (5.12)"
+    },
+    {
+      "id": "merge_split-02",
+      "q": "ال رحمن الرحيم",
+      "intended": "الرحمن الرحيم",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["1:1", "1:3", "2:163", "27:30", "41:2", "59:22"],
+      "note": "article split off (5.12)"
+    },
+    {
+      "id": "merge_split-03",
+      "q": "بسمالله الرحمن الرحيم",
+      "intended": "بسم الله الرحمن الرحيم",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["1:1", "27:30"],
+      "note": "words glued"
+    },
+    {
+      "id": "merge_split-04",
+      "q": "الحمدلله رب العالمين",
+      "intended": "الحمد لله رب العالمين",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["1:2", "10:10", "39:75", "40:65"],
+      "note": "words glued"
+    },
+    {
+      "id": "merge_split-05",
+      "q": "انا اعطيناك ال كوثر",
+      "intended": "انا اعطيناك الكوثر",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["108:1"],
+      "note": "article split off"
+    },
+    {
+      "id": "merge_split-06",
+      "q": "لااله الا هو الحي القيوم",
+      "intended": "لا اله الا هو الحي القيوم",
+      "category": "merge_split",
+      "tier": "typo",
+      "expected": ["2:255", "3:2"],
+      "note": "words glued"
+    },
+    {
+      "id": "voice-01",
+      "q": "قل هو الله احد الله الصمد",
+      "type": "voice",
+      "intended": "قل هو الله احد",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["112:1"],
+      "note": "recitation runs into the next ayah"
+    },
+    {
+      "id": "voice-02",
+      "q": "انا اعطيناك الكوثر فصل لربك",
+      "type": "voice",
+      "intended": "انا اعطيناك الكوثر",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["108:1"],
+      "note": "recitation runs into the next ayah"
+    },
+    {
+      "id": "voice-03",
+      "q": "وما خلقت الجن والانس الا ليعرفون",
+      "type": "voice",
+      "intended": "وما خلقت الجن والانس الا ليعبدون",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["51:56"],
+      "note": "misheard last word"
+    },
+    {
+      "id": "voice-04",
+      "q": "قل اعوذ برب الفل",
+      "type": "voice",
+      "intended": "قل اعوذ برب الفلق",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["113:1"],
+      "note": "cut-off last word (prefix)"
+    },
+    {
+      "id": "voice-05",
+      "q": "تبارك الذي بيده المل",
+      "type": "voice",
+      "intended": "تبارك الذي بيده الملك",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["67:1"],
+      "note": "cut-off last word (prefix)"
+    },
+    {
+      "id": "voice-06",
+      "q": "الهمد لله رب العالمين",
+      "type": "voice",
+      "intended": "الحمد لله رب العالمين",
+      "category": "confusable_letters",
+      "tier": "voice",
+      "expected": ["1:2", "10:10", "39:75", "40:65"],
+      "note": "STT ح->ه"
+    },
+    {
+      "id": "voice-07",
+      "q": "بسم الله ال رحمن الرحيم",
+      "type": "voice",
+      "intended": "بسم الله الرحمن الرحيم",
+      "category": "merge_split",
+      "tier": "voice",
+      "expected": ["1:1", "27:30"],
+      "note": "STT splits the article"
+    },
+    {
+      "id": "voice-08",
+      "q": "اهدنا الصراط المستقيم صراط الذين",
+      "type": "voice",
+      "intended": "اهدنا الصراط المستقيم",
+      "category": "partial",
+      "tier": "voice",
+      "expected": ["1:6"],
+      "note": "recitation runs into the next ayah"
+    },
+    {
+      "id": "negative-01",
+      "q": "كيف حالك يا صديقي",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "not Quran: must not return a confident result"
+    },
+    {
+      "id": "negative-02",
+      "q": "مباراة كرة القدم اليوم",
+      "category": "negative",
+      "tier": "clean",
+      "expected": []
+    },
+    {
+      "id": "negative-03",
+      "q": "برمجة الحاسوب",
+      "category": "negative",
+      "tier": "clean",
+      "expected": []
+    },
+    {
+      "id": "negative-04",
+      "q": "hello world",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "Latin only: normalizes to empty"
+    },
+    {
+      "id": "negative-05",
+      "q": "2:300",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "sura 2 has 286 ayahs: invalid reference, no result"
+    },
+    {
+      "id": "negative-06",
+      "q": "115:1",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "no sura 115"
+    },
+    {
+      "id": "negative-07",
+      "q": "البقرة 300",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "invalid ayah number"
+    },
+    {
+      "id": "negative-08",
+      "q": "255",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "a bare number is not a reference"
+    },
+    {
+      "id": "negative-09",
+      "q": "صباح الخير يا جماعة",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-10",
+      "q": "رمضان كريم",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-11",
+      "q": "سيارة جديدة للبيع",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-12",
+      "q": "كمبيوتر محمول رخيص",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-13",
+      "q": "مدرسة الجامعة الحكومية",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-14",
+      "q": "السلام عليكم ورحمة الله وبركاته",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-15",
+      "q": "كيف الحال",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    },
+    {
+      "id": "negative-16",
+      "q": "اريد ان اسافر غدا",
+      "category": "negative",
+      "tier": "clean",
+      "expected": [],
+      "note": "everyday Arabic, not Quran: must not produce a confident (corrected) result"
+    }
+  ]
+}

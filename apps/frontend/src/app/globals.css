@@ -1,0 +1,192 @@
+@import 'tailwindcss';
+
+/* spec 4.2: dark mode is a `dark` class on <html> (set before paint by BOOT_SCRIPT). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* claude.md 6: Uthmani-capable font, served locally (SIL OFL 1.1, see /fonts/OFL.txt). */
+@font-face {
+  font-family: 'Amiri Quran';
+  src: url('/fonts/AmiriQuran-Regular.ttf') format('truetype');
+  font-display: swap;
+}
+
+@theme {
+  --font-quran: 'Amiri Quran', 'Traditional Arabic', serif;
+  --font-ui: var(--font-cairo), 'Cairo', system-ui, 'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif;
+}
+
+/*
+ * Design tokens ("frontend design" folder): a dark, app-like UI with a navy highlight card,
+ * blue accents and white primary buttons. Light mode is the same design inverted.
+ */
+:root {
+  --bg: #f4f4f5;
+  --surface: #ffffff;
+  --surface-2: #f1f1f3;
+  --border: #e4e4e7;
+  --fg: #18181b;
+  --muted: #71717a;
+  --accent: #2563eb;
+  --hero: #e6efff;
+  --hero-fg: #0b2a55;
+  --hero-muted: #2563eb;
+  --primary-bg: #18181b;
+  --primary-fg: #ffffff;
+  --mark: #fde68a;
+  --mark-fg: #18181b;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --badge-green-bg: #dcfce7;
+  --badge-green-fg: #15803d;
+  --badge-blue-bg: #dbeafe;
+  --badge-blue-fg: #1d4ed8;
+  --track: #e4e4e7;
+  --quran-size: 22px;
+  /* legacy aliases used across components */
+  --card: var(--surface);
+}
+
+:root.dark {
+  --bg: #121212;
+  --surface: #1b1b1b;
+  --surface-2: #232323;
+  --border: #2c2c2c;
+  --fg: #f1f1f1;
+  --muted: #8d8d8d;
+  --accent: #4f8ff7;
+  --hero: #0c2754;
+  --hero-fg: #ffffff;
+  --hero-muted: #7aa9f7;
+  --primary-bg: #ffffff;
+  --primary-fg: #121212;
+  --mark: #6b5216;
+  --mark-fg: #ffffff;
+  --success: #16a34a;
+  --danger: #f27272;
+  --badge-green-bg: #0f3a1d;
+  --badge-green-fg: #4ade80;
+  --badge-blue-bg: #0b2a55;
+  --badge-blue-fg: #6aa6ff;
+  --track: #2a2a2a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+}
+
+/* Form controls don't inherit the font by default. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Ayah text everywhere follows the reading font size (spec 4.2). */
+.quran-text {
+  font-family: var(--font-quran);
+  font-size: var(--quran-size);
+  line-height: 2.3;
+}
+
+mark.hl {
+  background: var(--mark);
+  color: var(--mark-fg);
+  border-radius: 0.2em;
+  padding: 0 0.1em;
+}
+
+/* Smooth jump to #ayah-… and keep it clear of the top bar. */
+[id^='ayah-'] {
+  scroll-margin-top: 5rem;
+}
+
+@layer components {
+  .ui-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+  }
+  .ui-row {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .ui-hero {
+    background: var(--hero);
+    color: var(--hero-fg);
+    border-radius: 1rem;
+  }
+  .ui-input {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    color: var(--fg);
+    outline: none;
+  }
+  .ui-input:focus {
+    border-color: var(--accent);
+  }
+  .ui-input::placeholder {
+    color: var(--muted);
+  }
+  .ui-btn-primary {
+    background: var(--primary-bg);
+    color: var(--primary-fg);
+    border-radius: 0.75rem;
+    font-weight: 600;
+  }
+  .ui-btn-primary:disabled {
+    opacity: 0.5;
+  }
+  .ui-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 9999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.85rem;
+    color: var(--fg);
+  }
+  .ui-chip:hover {
+    border-color: var(--accent);
+  }
+  .ui-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    padding: 0.1rem 0.6rem;
+    font-size: 0.75rem;
+  }
+  .ui-badge-green {
+    background: var(--badge-green-bg);
+    color: var(--badge-green-fg);
+  }
+  .ui-badge-blue {
+    background: var(--badge-blue-bg);
+    color: var(--badge-blue-fg);
+  }
+  .ui-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    background: var(--surface-2);
+    font-size: 0.85rem;
+  }
+  .ui-section-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+}

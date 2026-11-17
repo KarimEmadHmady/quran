@@ -11,6 +11,8 @@ import { validateEnv, type EnvVars } from './config/env.validation';
 import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { QuranModule } from './quran/quran.module';
+import { ExportModule } from './export/export.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -31,11 +33,15 @@ import { QuranModule } from './quran/quran.module';
           THROTTLE_AUTH_TTL_SECONDS: config.get('THROTTLE_AUTH_TTL_SECONDS', { infer: true }),
           THROTTLE_SEARCH_LIMIT: config.get('THROTTLE_SEARCH_LIMIT', { infer: true }),
           THROTTLE_SEARCH_TTL_SECONDS: config.get('THROTTLE_SEARCH_TTL_SECONDS', { infer: true }),
+          THROTTLE_EXPORT_LIMIT: config.get('THROTTLE_EXPORT_LIMIT', { infer: true }),
+          THROTTLE_EXPORT_TTL_SECONDS: config.get('THROTTLE_EXPORT_TTL_SECONDS', { infer: true }),
         }),
     }),
     PrismaModule,
     HealthModule,
     QuranModule,
+    SearchModule,
+    ExportModule,
     AdminModule,
   ],
   providers: [
