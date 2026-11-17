@@ -131,3 +131,125 @@ enum SajdaType {
 
   @@map("ayahs_sajda_type")
 }
+
+// ---------------------------------------------------------------------------------------------
+// Quran audio (AlQuran Cloud). ADDITIVE tables created by prisma/sql/001_quran_audio.sql
+// (npm run db:migrate:audio). They reference ayahs.id but no field was added to Ayah/Sura:
+// the existing models and tables are unchanged.
+// ---------------------------------------------------------------------------------------------
+
+/// One AlQuran Cloud audio edition. bitrate is NULL until the CDN URL pattern is verified.
+model AudioReciter {
+  id                Int         @id @default(autoincrement()) @db.UnsignedInt
+  identifier        String      @unique(map: "uq_reciter_identifier") @db.VarChar(64)
+  name              String      @db.VarChar(150)
+  englishName       String?     @map("english_name") @db.VarChar(150)
+  language          String      @db.VarChar(10)
+  format            String      @db.VarChar(20)
+  type              String      @db.VarChar(30)
+  bitrate           Int?        @db.UnsignedSmallInt
+  secondaryBitrates String?     @map("secondary_bitrates") @db.VarChar(60)
+  isAvailable       Boolean     @default(true) @map("is_available")
+  isActive          Boolean     @default(true) @map("is_active")
+  verifiedAt        DateTime?   @map("verified_at") @db.Timestamp(0)
+  verificationError String?     @map("verification_error") @db.VarChar(255)
+  lastSyncedAt      DateTime?   @map("last_synced_at") @db.Timestamp(0)
+  createdAt         DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  audio             AyahAudio[]
+
+  @@map("audio_reciters")
+}
+
+/// Verified audio reference for one (reciter, ayah). ayahId -> ayahs.id (FK fk_aa_ayah, SQL only).
+model AyahAudio {
+  id           Int             @id @default(autoincrement()) @db.UnsignedInt
+  reciterId    Int             @map("reciter_id") @db.UnsignedInt
+  ayahId       Int             @map("ayah_id") @db.UnsignedInt
+  globalNumber Int             @map("global_number") @db.UnsignedSmallInt
+  status       AyahAudioStatus
+  url          String?         @db.VarChar(255)
+  bitrate      Int?            @db.UnsignedSmallInt
+  source       AyahAudioSource
+  checkedAt    DateTime        @default(now()) @map("checked_at") @db.Timestamp(0)
+  reciter      AudioReciter    @relation(fields: [reciterId], references: [id], onDelete: Cascade, map: "fk_aa_reciter")
+
+  @@unique([reciterId, ayahId], map: "uq_reciter_ayah")
+  @@index([ayahId], map: "idx_aa_ayah")
+  @@index([reciterId, status], map: "idx_aa_reciter_status")
+  @@map("ayah_audio")
+}
+
+model AudioSyncJob {
+  id              Int                @id @default(autoincrement()) @db.UnsignedInt
+  kind            AudioSyncJobKind
+  status          AudioSyncJobStatus
+  recitersTotal   Int                @default(0) @map("reciters_total") @db.UnsignedSmallInt
+  recitersDone    Int                @default(0) @map("reciters_done") @db.UnsignedSmallInt
+  currentReciter  String?            @map("current_reciter") @db.VarChar(64)
+  itemsTotal      Int                @default(0) @map("items_total") @db.UnsignedInt
+  itemsDone       Int                @default(0) @map("items_done") @db.UnsignedInt
+  missingCount    Int                @default(0) @map("missing_count") @db.UnsignedInt
+  errorCount      Int                @default(0) @map("error_count") @db.UnsignedInt
+  pendingReciters String?            @map("pending_reciters") @db.Text
+  cursorAyahId    Int?               @map("cursor_ayah_id") @db.UnsignedInt
+  errors          String?            @db.Text
+  startedAt       DateTime           @default(now()) @map("started_at") @db.Timestamp(0)
+  updatedAt       DateTime           @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  finishedAt      DateTime?          @map("finished_at") @db.Timestamp(0)
+
+  @@index([kind, status], map: "idx_job_kind_status")
+  @@map("audio_sync_jobs")
+}
+
+enum AyahAudioStatus {
+  available
+  missing
+
+  @@map("ayah_audio_status")
+}
+
+enum AyahAudioSource {
+  cdn_listing
+  api
+
+  @@map("ayah_audio_source")
+}
+
+enum AudioSyncJobKind {
+  reciters
+  audio
+
+  @@map("audio_sync_jobs_kind")
+}
+
+enum AudioSyncJobStatus {
+  running
+  completed
+  failed
+  interrupted
+
+  @@map("audio_sync_jobs_status")
+}
+
+/// Full-sura recordings (one MP3 per sura), from prisma/sql/002_quran_audio_surah.sql.
+/// SEPARATE from AudioReciter (verse-by-verse): different CDN folders. identifier = CDN folder.
+model AudioSurahReciter {
+  id            Int       @id @default(autoincrement()) @db.UnsignedInt
+  identifier    String    @unique(map: "uq_surah_reciter_identifier") @db.VarChar(80)
+  apiIdentifier String?   @map("api_identifier") @db.VarChar(80)
+  name          String?   @db.VarChar(150)
+  englishName   String?   @map("english_name") @db.VarChar(150)
+  language      String    @db.VarChar(10)
+  bitrate       Int       @db.UnsignedSmallInt
+  bitrates      String    @db.VarChar(60)
+  surahCount    Int       @map("surah_count") @db.UnsignedSmallInt
+  missingSurahs String?   @map("missing_surahs") @db.VarChar(500)
+  isAvailable   Boolean   @default(true) @map("is_available")
+  isActive      Boolean   @default(true) @map("is_active")
+  lastSyncedAt  DateTime? @map("last_synced_at") @db.Timestamp(0)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("audio_surah_reciters")
+}

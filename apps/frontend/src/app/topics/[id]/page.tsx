@@ -3,10 +3,19 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/AppChrome';
 import { AyahList } from '@/components/AyahList';
+import { Icon } from '@/components/Icon';
+import { relatedTopics, type RelatedReason } from '@/lib/relatedTopics';
 import { parseIntParam, parsePageParam } from '@/lib/routeParams';
-import { getSuras, getTopic } from '@/lib/serverApi';
+import { getSuras, getTopic, getTopicTree } from '@/lib/serverApi';
 
 export const dynamic = 'force-dynamic';
+
+const REASON_LABEL: Record<RelatedReason, string> = {
+  parent: 'الموضوع الأشمل',
+  child: 'موضوع فرعي',
+  sibling: 'من نفس القسم',
+  similar: 'موضوع مشابه',
+};
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -24,10 +33,13 @@ export default async function TopicPage({ params, searchParams }: Props) {
   const id = parseIntParam((await params).id, 1, 4_294_967_295);
   const page = parsePageParam((await searchParams).page);
   if (id === null || page === null) notFound();
-  const [data, suras] = await Promise.all([getTopic(id, page), getSuras()]);
+  // The topic tree (public: banned topics already excluded) feeds «مواضيع ذات صلة»; if it fails,
+  // the page still renders without that section.
+  const [data, suras, tree] = await Promise.all([getTopic(id, page), getSuras(), getTopicTree().catch(() => [])]);
   if (!data) notFound();
   const { topic, ayahs, pagination } = data;
   const names = Object.fromEntries(suras.map((s) => [s.number, s.nameAr]));
+  const related = relatedTopics(tree, topic.id);
 
   return (
     <section className="space-y-4">
@@ -57,6 +69,31 @@ export default async function TopicPage({ params, searchParams }: Props) {
             </Link>
           )}
         </nav>
+      )}
+
+      {related.length > 0 && (
+        <section aria-labelledby="related-topics" className="border-t border-[var(--border)] pt-5">
+          <h2 id="related-topics" className="mb-3 text-lg font-bold">
+            مواضيع ذات صلة
+          </h2>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            {related.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/topics/${t.id}`}
+                  className="ui-card flex h-full items-center gap-3 px-4 py-3 transition hover:border-[var(--accent)]"
+                >
+                  <Icon name={t.hasChildren ? 'folder' : 'file'} className="h-5 w-5 shrink-0 text-[var(--muted)]" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-semibold">{t.title}</span>
+                    <span className="text-xs text-[var(--muted)]">{REASON_LABEL[t.reason]}</span>
+                  </span>
+                  <Icon name="chevron" className="h-4 w-4 shrink-0 text-[var(--muted)]" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </section>
   );

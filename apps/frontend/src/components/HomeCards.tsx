@@ -25,13 +25,13 @@ export function HomeCards({ suraNames }: { suraNames: Record<number, string> }) 
         </Link>
       )}
       <Link href="/khatma" className="ui-card block p-4 hover:border-[var(--accent)]">
-        <span className="block text-sm text-[var(--muted)]">الختمة</span>
+        <span className="block text-sm text-[var(--muted)]">الورد اليومى </span>
         <span className="font-bold">
           {!khatma
             ? 'ابدأ خطة ختمة'
             : isFinished(khatma)
               ? 'ختمت القرآن ✓'
-              : `${Math.round(progress(khatma) * 1000) / 10}% · ${isTodayDone(khatma, localDate()) ? 'ورد النهارده خلص ✓' : 'ورد النهارده لسه'}`}
+              : `${Math.round(progress(khatma) * 1000) / 10}% · ${isTodayDone(khatma, localDate()) ? 'ورد النهارده خلص ✓' : 'اجعل للقرآن نصيبًا من يومك'}`}
         </span>
       </Link>
     </div>

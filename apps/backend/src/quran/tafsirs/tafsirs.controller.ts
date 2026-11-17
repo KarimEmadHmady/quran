@@ -1,5 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
-import { TafsirsQueryDto } from './dto/tafsirs-query.dto';
+import { TafsirAvailabilityQueryDto, TafsirsQueryDto } from './dto/tafsirs-query.dto';
 import { TafsirsService, type PublicTafsir, type PublicTafsirBook } from './tafsirs.service';
 
 @Controller()
@@ -9,6 +9,15 @@ export class TafsirsController {
   @Get('tafsir-books')
   async listBooks(): Promise<{ data: PublicTafsirBook[] }> {
     return { data: await this.tafsirs.listBooks() };
+  }
+
+  /**
+   * Which of these ayahs have a tafsir in a visible book (no content is read). Lets a page of
+   * search results show a «تفسير» button only where there is something to show, in ONE request.
+   */
+  @Get('tafsirs/available')
+  async available(@Query() { ayah_ids }: TafsirAvailabilityQueryDto): Promise<{ data: number[] }> {
+    return { data: await this.tafsirs.availableFor(ayah_ids) };
   }
 
   @Get('tafsirs')

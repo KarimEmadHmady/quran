@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AyahCard } from '@/components/AyahCard';
 import { SearchBox } from '@/components/SearchBox';
 import { VoiceSearchButton, type VoiceResult } from '@/components/VoiceSearchButton';
-import { ApiRequestError, clampQuery, search, type SearchResponse } from '@/lib/api';
+import { ApiRequestError, clampQuery, search, tafsirAvailability, type SearchResponse, type SearchResult } from '@/lib/api';
+import { TafsirModal } from '@/components/TafsirModal';
 
 const PAGE_SIZE = 20;
 /** claude.md 5.7: with a low-confidence top result, show the best 3 as suggestions. */
@@ -65,6 +66,7 @@ export function SearchClient() {
   const go = (text: string, opts: { type?: 'text' | 'voice'; page?: number } = {}) => {
     const clean = clampQuery(text);
     if (!clean) return;
+    setInput(clean); // the search box shows the new query right away (suggestion / correction clicks)
     const sp = new URLSearchParams({ q: clean });
     if (opts.type === 'voice') sp.set('type', 'voice');
     if (opts.page && opts.page > 1) sp.set('page', String(opts.page));
@@ -158,11 +160,37 @@ function Results({
   const shown = low && !showAll && data.page === 1 ? data.results.slice(0, LOW_CONFIDENCE_TOP) : data.results;
   const invalid = data.reference?.status === 'invalid' ? data.reference : null;
 
+  // One request per results page: which ayahs have a tafsir (the «تفسير» button shows only there).
+  const [withTafsir, setWithTafsir] = useState<Set<number>>(new Set());
+  const [tafsirOf, setTafsirOf] = useState<SearchResult | null>(null);
+  const closeTafsir = useCallback(() => setTafsirOf(null), []);
+  const idsKey = data.results.map((r) => r.ayahId).join(',');
+  useEffect(() => {
+    const ids = idsKey ? idsKey.split(',').map(Number) : [];
+    setWithTafsir(new Set());
+    if (ids.length === 0) return;
+    const ctrl = new AbortController();
+    tafsirAvailability(ids, ctrl.signal)
+      .then((have) => setWithTafsir(new Set(have)))
+      .catch(() => undefined); // no button rather than an empty one
+    return () => ctrl.abort();
+  }, [idsKey]);
+
   return (
     <div className="space-y-4">
       {data.corrected && (
         <p className="ui-hero p-4 text-sm">
-          تم البحث عن <strong>«{data.corrected.text}»</strong> بدلاً من <strong>«{data.query.normalized}»</strong>
+          تم البحث عن{' '}
+          {/* Clickable: puts the corrected phrase in the search box and searches it (same page). */}
+          <button
+            type="button"
+            onClick={() => onSearch(data.corrected!.text)}
+            title="ابحث بهذه العبارة"
+            className="font-bold underline decoration-dotted underline-offset-4 hover:decoration-solid"
+          >
+            «{data.corrected.text}»
+          </button>{' '}
+          بدلاً من <strong>«{data.query.normalized}»</strong>
         </p>
       )}
       {data.didYouMean && (
@@ -198,9 +226,19 @@ function Results({
 
       <div className="space-y-3">
         {shown.map((r) => (
-          <AyahCard key={r.ayahId} result={r} />
+          <AyahCard key={r.ayahId} result={r} onTafsir={withTafsir.has(r.ayahId) ? () => setTafsirOf(r) : undefined} />
         ))}
       </div>
+
+      {tafsirOf && (
+        <TafsirModal
+          ayahId={tafsirOf.ayahId}
+          suraName={tafsirOf.suraName}
+          ayahNumber={tafsirOf.ayahNumber}
+          textUthmani={tafsirOf.textUthmani}
+          onClose={closeTafsir}
+        />
+      )}
 
       {data.totalPages > 1 && (showAll || !low) && (
         <nav aria-label="الصفحات" className="flex items-center justify-center gap-3 pt-2">

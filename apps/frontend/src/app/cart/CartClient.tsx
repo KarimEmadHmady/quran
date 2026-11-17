@@ -5,14 +5,13 @@ import { useEffect, useState } from 'react';
 import { ExportPdfButton } from '@/components/ExportPdfButton';
 import { ShareAsImageModal, type ShareTarget } from '@/components/ShareAsImageModal';
 import { useCartDetails } from '@/components/useCartDetails';
-import { tafsirBooks, type TafsirBook } from '@/lib/api';
+import { imageTafsirFor, useCartTafsirDefaults } from '@/components/useCartTafsir';
 import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/useUiStore';
 
 /** spec 2 / 4.1: review the cart before exporting; optionally attach a tafsir per ayah. */
 export function CartClient() {
   const [mounted, setMounted] = useState(false);
-  const [books, setBooks] = useState<TafsirBook[]>([]);
   const remove = useCartStore((s) => s.remove);
   const setTafsir = useCartStore((s) => s.setTafsir);
   const clear = useCartStore((s) => s.clear);
@@ -22,13 +21,10 @@ export function CartClient() {
   const toggleTafsir = useUiStore((s) => s.toggleCartTafsir);
 
   useEffect(() => setMounted(true), []);
-  useEffect(() => {
-    const ctrl = new AbortController();
-    tafsirBooks(ctrl.signal)
-      .then(setBooks)
-      .catch(() => setBooks([]));
-    return () => ctrl.abort();
-  }, []);
+  // Shared with the cart drawer: book list + default tafsir (first book after «بدون تفسير»);
+  // manual choices and explicit «بدون تفسير» are kept.
+  const books = useCartTafsirDefaults(mounted);
+  const [downloadContent, setDownloadContent] = useState<'ayah' | 'ayah_tafsir'>('ayah');
 
   if (!mounted) return null;
   if (items.length === 0) {
@@ -83,16 +79,18 @@ export function CartClient() {
                   {a && (
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const t = imageTafsirFor(i, tafsirOff);
+                        setDownloadContent(t.content);
                         setDownload({
                           ayahId: a.id,
                           suraName: a.suraName,
                           suraNumber: a.suraNumber,
                           ayahNumber: a.ayahNumber,
                           textUthmani: a.textUthmani,
-                          tafsirBookId: i.tafsirBookId,
-                        })
-                      }
+                          tafsirBookId: t.tafsirBookId,
+                        });
+                      }}
                       className="text-[var(--accent)]"
                     >
                       تحميل كصورة
@@ -120,7 +118,7 @@ export function CartClient() {
         <ShareAsImageModal
           target={download}
           action="download"
-          content={tafsirOff.includes(download.ayahId) ? 'ayah' : 'ayah_tafsir'}
+          content={downloadContent}
           onClose={() => setDownload(null)}
         />
       )}

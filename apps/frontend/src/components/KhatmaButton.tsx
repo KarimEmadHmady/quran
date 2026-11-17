@@ -4,8 +4,8 @@ import { useKhatmaStore } from '@/store/useKhatmaStore';
 import { Icon } from './Icon';
 
 /**
- * "تمت القراءة" (claude.md 11.15 decision 1): the ONLY way khatma progress moves; scrolling
- * never counts. It marks everything up to this ayah as read; already-read ayahs show a
+ * "تمت القراءة": marks everything up to this ayah as read (manual way; reading pages also mark
+ * ayahs scrolled past automatically, see useAutoKhatmaReading); already-read ayahs show a
  * disabled check, so an ayah can never be completed twice. Hidden without an active khatma.
  */
 export function KhatmaButton({ ayahId }: { ayahId: number }) {

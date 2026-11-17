@@ -9,6 +9,7 @@ import { ExportPdfButton } from './ExportPdfButton';
 import { Icon } from './Icon';
 import { ShareAsImageModal, type ShareTarget } from './ShareAsImageModal';
 import { useCartDetails } from './useCartDetails';
+import { imageTafsirFor, useCartTafsirDefaults } from './useCartTafsir';
 
 /**
  * spec 4.1 cart drawer, styled as the design's bottom sheet: the items (remove each),
@@ -23,6 +24,9 @@ export function FloatingCart() {
   const [download, setDownload] = useState<ShareTarget | null>(null);
   const tafsirOff = useUiStore((s) => s.cartTafsirOff);
   const toggleTafsir = useUiStore((s) => s.toggleCartTafsir);
+  // Same default tafsir as /cart, applied as soon as the drawer opens.
+  useCartTafsirDefaults(isOpen);
+  const [downloadContent, setDownloadContent] = useState<'ayah' | 'ayah_tafsir'>('ayah');
   if (!isOpen) return null;
 
   return (
@@ -62,16 +66,18 @@ export function FloatingCart() {
                   {a && (
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        const t = imageTafsirFor(i, tafsirOff);
+                        setDownloadContent(t.content);
                         setDownload({
                           ayahId: a.id,
                           suraName: a.suraName,
                           suraNumber: a.suraNumber,
                           ayahNumber: a.ayahNumber,
                           textUthmani: a.textUthmani,
-                          tafsirBookId: i.tafsirBookId,
-                        })
-                      }
+                          tafsirBookId: t.tafsirBookId,
+                        });
+                      }}
                       aria-label="تحميل كصورة"
                       title={tafsirOff.includes(i.ayahId) ? 'تحميل الآية فقط' : 'تحميل الآية مع التفسير'}
                       className="rounded-full p-1.5 text-[var(--muted)] hover:bg-[var(--surface)] hover:text-[var(--accent)]"
@@ -109,7 +115,7 @@ export function FloatingCart() {
         <ShareAsImageModal
           target={download}
           action="download"
-          content={tafsirOff.includes(download.ayahId) ? 'ayah' : 'ayah_tafsir'}
+          content={downloadContent}
           onClose={() => setDownload(null)}
         />
       )}

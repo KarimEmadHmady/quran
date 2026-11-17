@@ -8,6 +8,12 @@ export const STORAGE_KEYS = {
   bookmark: 'quran_bookmark',
   khatma: 'quran_khatma',
   lastRoute: 'quran_last_route',
+  /** Audio player preferences (reciter, volume, repeat, playback mode). Not part of spec §3. */
+  audio: 'quran_audio',
+  /** Cart ayah ids the user explicitly set to «بدون تفسير» (others default to the first book). */
+  cartNoTafsir: 'quran_cart_no_tafsir',
+  /** Last listening position (what, which reciter, where, playing or paused). Metadata only. */
+  audioSession: 'quran_audio_session',
 } as const;
 
 export function getItem<T>(key: string, fallback: T): T {

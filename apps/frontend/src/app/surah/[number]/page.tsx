@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { PageHeader } from '@/components/AppChrome';
 import { AyahList } from '@/components/AyahList';
+import { SuraAudioMenu } from '@/components/audio/SuraAudioMenu';
 import { BISMILLAH, PLACE_LABEL, showBismillahHeader } from '@/lib/quran';
 import { parseIntParam } from '@/lib/routeParams';
 import { getSura } from '@/lib/serverApi';
@@ -37,13 +38,15 @@ export default async function SuraPage({ params }: Props) {
           </span>
         </div>
       </div>
+      {/* Listening (full sura / ayah by ayah, both reciters) and layout, in one compact menu. */}
+      {ayahs.length > 0 && <SuraAudioMenu suraNumber={sura.number} />}
       {showBismillahHeader(sura.number, ayahs[0]?.textUthmani) && (
         <p className="quran-text text-center">{BISMILLAH}</p>
       )}
       {ayahs.length === 0 ? (
         <p className="text-center text-[var(--muted)]">مفيش آيات متاحة للسورة دي.</p>
       ) : (
-        <AyahList ayahs={ayahs} suraNames={{ [sura.number]: sura.nameAr }} trackBookmark />
+        <AyahList ayahs={ayahs} suraNames={{ [sura.number]: sura.nameAr }} trackBookmark showViewToggle={false} />
       )}
       <nav className="flex justify-between pt-2 text-sm" aria-label="السور المجاورة">
         {sura.number > 1 ? (

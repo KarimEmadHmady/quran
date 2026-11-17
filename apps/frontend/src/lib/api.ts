@@ -183,3 +183,11 @@ export async function tafsirsForAyah(
     )
   ).data;
 }
+
+/** GET /tafsirs/available?ayah_ids= — which of these ayahs (≤ 100) have a tafsir to show. */
+export async function tafsirAvailability(ayahIds: number[], signal?: AbortSignal): Promise<number[]> {
+  if (ayahIds.length === 0) return [];
+  return (
+    await getJson<{ data: number[] }>('/tafsirs/available', { ayah_ids: ayahIds.slice(0, 100).join(',') }, signal)
+  ).data;
+}

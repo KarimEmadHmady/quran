@@ -21,14 +21,16 @@ export function ScrollToTop() {
 
   if (!visible) return null;
   // Above the reader's bottom tab bar; the admin dashboard has no tab bar.
-  const bottom = isAdminPath(pathname) ? 'bottom-6' : 'bottom-24';
+  // In the reader, also above the audio player bar when it is shown (--player-h).
+  const bottom = isAdminPath(pathname) ? '1.5rem' : 'calc(6rem + var(--player-h, 0px))';
   return (
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
       aria-label="الرجوع لأعلى الصفحة"
       title="لأعلى"
-      className={`fixed left-4 ${bottom} z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] shadow-lg transition hover:border-[var(--accent)] hover:text-[var(--accent)]`}
+      style={{ bottom }}
+      className={`fixed left-4 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--surface)] text-[var(--fg)] shadow-lg transition hover:border-[var(--accent)] hover:text-[var(--accent)]`}
     >
       <Icon name="up" className="h-5 w-5" />
     </button>

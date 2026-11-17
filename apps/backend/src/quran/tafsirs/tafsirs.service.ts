@@ -31,6 +31,21 @@ export class TafsirsService {
     });
   }
 
+  /** Ayah ids (of those asked) that have non-empty tafsir in a visible book. Never selects content. */
+  async availableFor(ayahIds: readonly number[]): Promise<number[]> {
+    const rows = await this.prisma.tafsir.findMany({
+      where: {
+        ayahId: { in: [...ayahIds] },
+        content: { not: null },
+        bookId: { notIn: [...HIDDEN_TAFSIR_BOOK_IDS] },
+      },
+      select: { ayahId: true },
+      distinct: ['ayahId'],
+    });
+    const have = new Set(rows.map((r) => r.ayahId));
+    return ayahIds.filter((id) => have.has(id));
+  }
+
   /** The ONLY query in the API that selects tafsirs.content. */
   async forAyah(ayahId: number, bookIds?: number[]): Promise<PublicTafsir[]> {
     const ayah = await this.prisma.ayah.findUnique({ where: { id: ayahId }, select: { id: true } });

@@ -6,6 +6,7 @@ import { STORAGE_KEYS, getItem, setItem } from '@/lib/localStore';
 import { isAdminPath } from './AppChrome';
 import { parseLastRoute, type LastRoute } from '@/lib/shapes';
 import { useBookmarkStore } from '@/store/useBookmarkStore';
+import { useAudioStore } from '@/store/useAudioStore';
 import { useKhatmaStore } from '@/store/useKhatmaStore';
 import { resolvedTheme, useSettingsStore } from '@/store/useSettingsStore';
 
@@ -31,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     useSettingsStore.getState().hydrate();
     useBookmarkStore.getState().hydrate();
     useKhatmaStore.getState().hydrate();
+    useAudioStore.getState().hydrate();
   }, []);
 
   // Theme: the saved choice, or the device preference (followed live until a choice is saved).

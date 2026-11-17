@@ -1028,3 +1028,76 @@ quran_app/
 - **الـ lockout والـ throttler** in-memory.
 - **تعديل اسم السورة:** صفحات القراءة عندها cache ساعة (11.15)، فالاسم الجديد ممكن ياخد لحد ساعة عشان يظهر هناك. البحث بيتحدث فوراً.
 - **Postman:** اتضاف فولدر `09 - Admin dashboard (Phase 6)` (60 طلب). القراءة والـ 400/404/409/401 بتشتغل بـ `adminEmail`/`adminPassword`، والكتابة بس لو `allowAdminWrites=true` (وبترجّع كل حاجة زي ما كانت). اتجرب على `local_test`: 173 طلب و728 assertion من غير أي فشل.
+
+### 11.18 التلاوة الصوتية (AlQuran Cloud) · 2026-11-17
+**الحالة:** اتنفذت (باك + فرونت + أدمن). **مفيش أي اختبارات اتشغلت** (بطلب صريح)؛ اللي اتعمل typecheck و lint بس.
+
+**الداتا بيز (إضافة بس):**
+- `apps/backend/prisma/sql/001_quran_audio.sql`: 3 جداول جديدة بس، كلها `CREATE TABLE IF NOT EXISTS`: `audio_reciters` و`ayah_audio` (FK لـ `ayahs.id`، و unique على `(reciter_id, ayah_id)`) و`audio_sync_jobs`.
+- بيتطبق بـ `npm run db:migrate:audio` (`scripts/apply-audio-migration.ts` بيرفض يشغّل أي statement غير CREATE TABLE IF NOT EXISTS للجداول التلاتة). **اتطبق على `local` بتاريخ 2026-11-17.** مفيش أي جدول قديم اتعدل.
+- Prisma: 3 models + 4 enums اتضافوا يدوي في `schema.prisma`. **مفيش relation field اتضاف لـ `Ayah`/`Sura`.** ممنوع `prisma migrate`/`db push` زي ما هو.
+- `.gitignore`: استثناء `!apps/backend/prisma/sql/*.sql` عشان الـ migration تتحفظ في git.
+
+**الترقيم:** `QuranNumberingService` بيحسب الرقم العام (1..6236) من ترتيب السور والآيات، مش من `ayahs.id`، وبيتأكد إن البيانات كاملة ومتسقة (114 سورة، 6236 آية، `ayah_count` = الصفوف). لو مش متسقة → 503 بدل ما نربط آية بتسجيل غلط. (حالياً `ayahs.id` = الرقم العام في الـ 6236.)
+
+**ملاحظات اتأكدنا منها من الـ API (2026-11-17):**
+- 24 إصدار `ar` + `versebyverse`.
+- **edition غلط بيرجع 200 بإصدار نصي** (fallback صامت)، فكل رد بيتأكد من `edition.identifier` و`format=audio`.
+- الـ bitrate بيختلف حسب القارئ (128/192/64/48/32). وفيه ملفات ناقصة فعلاً على الـ CDN (مثلاً `ar.husary` 128 مفيهوش 4089، و`ar.mahermuaiqly` 64 ناقصه 4).
+- `info.json` بتاع الـ CDN (~18MB) = directory listing (مش documented)، وبيتقري بحذر.
+
+**التحقق:**
+- **مزامنة القرّاء:** لكل قارئ 3 طلبات `/ayah` (1:1، 2:255، 114:6). لازم الـ edition والسورة والآية والرقم العام (مقارنة بترقيمنا) ونمط رابط الـ CDN يطابقوا، ونفس الـ bitrate، و HEAD على أول ملف = 200 audio. وإلا `bitrate = NULL` + `verification_error`.
+- **مزامنة الروابط:** لكل قارئ مؤكد ولكل آية: الرابط بيتحفظ **بس لو الملف موجود في الـ listing** (الـ bitrate الأساسي، وبعدين الثانوية)، وإلا `missing`. لو الـ listing مش متاح → `/quran/{edition}` (طلب واحد للقارئ) وكل آية بتتقارن بترقيمنا. Batches من 500 بـ `INSERT … ON DUPLICATE KEY UPDATE` (idempotent). الـ job بيتحفظ (cursor + القرّاء الباقيين)، وبيتعمله resume؛ وأي job "running" بعد restart بيتعلّم `interrupted`.
+- **التشغيل:** صف `ayah_audio` (`synced`) ← نمط القارئ المؤكد (`template` + `fallbackUrls` بالـ bitrates التانية) ← `/surah` أو `/ayah` live بتحقق لكل آية (`api`). أي رابط بيترجع لازم يطابق `https://cdn.islamic.network/quran/audio/{bitrate}/{edition}/{global}.mp3` لنفس القارئ والآية.
+- **من غير مزامنة / لو الجداول مش موجودة:** القائمة والروابط بتيجي live من الـ API (cache 6 ساعات)، والتطبيق شغال.
+
+**الـ API:**
+| Method | المسار | ملاحظات |
+|---|---|---|
+| GET | `/quran-audio/reciters` | `{ data, defaultReciter, source: 'database'\|'live' }`. المفعّل والمتاح بس. الافتراضي `ar.alafasy` |
+| GET | `/quran-audio/reciters/:identifier` | 404 لأي قارئ مش متاح |
+| GET | `/quran-audio/ayah/:surah/:ayah?reciter=` | `{ reciter, sura, track }`. 404 لو مفيش تسجيل للآية |
+| GET | `/quran-audio/surah/:surah?reciter=` | `{ reciter, sura, tracks, missing }` (`url: null` = مفيش تسجيل) |
+| GET | `/admin/quran-audio/overview` | الإحصائيات + القرّاء + حالة المزامنة + `schemaReady` |
+| GET | `/admin/quran-audio/editions` | كل إصدارات الصوت + `compatible` |
+| PATCH | `/admin/quran-audio/reciters/:identifier` | `{ isActive }` بس |
+| POST | `/admin/quran-audio/sync/reciters` | `{ force? }` → 202 + job. `force` = تحديث بيانات الكل |
+| POST | `/admin/quran-audio/sync/audio` | `{ resume?, reciters? }` → 202 + job. 409 لو فيه job شغال أو مفيش حاجة تتعمل |
+| GET | `/admin/quran-audio/sync/status` | `{ running, lastReciterJob, lastAudioJob }` |
+
+- الـ admin routes تحت `/admin` فالـ `AdminAuthGuard` العام بيحميها. الـ client: concurrency 3، ومسافة 150ms، و 3 retries بـ backoff، و timeouts، وحد أقصى للحجم.
+
+**الفرونت:**
+- `store/useAudioStore.ts`: **controller واحد** (عنصر `<audio>` واحد + عنصر preload للآية الجاية). كل طلب بياخد token، والطلبات القديمة بتتلغي (ضغط سريع، تغيير القارئ، تغيير السورة). تكرار (1–10 أو مستمر)، ووضع (آية / السورة / متواصل للسورة التالية)، وتجربة الـ bitrates التانية لو الملف فشل، وتخطي الآيات المفقودة في التشغيل المتواصل، و Media Session.
+- `components/audio/`: `AudioPlayerBar` (فوق الـ bottom nav؛ بيضبط `--player-h` فالـ main والـ ScrollToTop ولوحة وضع المصحف بيتزحزحوا)، و`AyahPlayButton` (على كل آية في السور والمواضيع ونتايج البحث) + «تشغيل السورة»، و`ReciterSelect` (في المشغّل وفي شيت الإعدادات).
+- الآية اللي بتتقري بتتظلل وبيتعمل لها scroll. المشغّل مش بيظهر في `/admin` (وبيقف هناك).
+- localStorage: مفتاح جديد `quran_audio` `{ reciter, volume, repeat, mode }` (`parseAudioPrefs`). **مش من spec §3**، و`quran_settings` ما اتغيرش.
+- الأدمن: `/admin/dashboard/audio` (التلاوات): إحصائيات، وتقدّم الـ job (polling كل 2 ثانية)، والأخطاء، ومزامنة/تحديث القرّاء، ومزامنة/استئناف الروابط، وتفعيل/إخفاء قارئ، وقائمة الإصدارات.
+
+**لسه / قيود:**
+- **مفيش اختبارات** للميزة دي (ولا اتشغّلت اختبارات قديمة).
+- `prisma generate` على Windows فشل في استبدال الـ DLL (السيرفر شغال)؛ الـ types اتولدت. **أعد تشغيل الباك إند** عشان يستخدم الـ client الجديد.
+- الـ jobs والـ caches in-memory (instance واحد، زي 11.7). مفيش إلغاء لـ job شغال.
+- Postman collection ما اتحدثش.
+- الصوت من CDN خارجي: لو `cdn.islamic.network` واقع، التشغيل بيفشل برسالة + إعادة محاولة (مفيش ملفات MP3 محلية).
+
+### 11.19 تشغيل السورة كاملة من ملف MP3 واحد · 2026-11-17
+**الحالة:** اتنفذ. **مفيش اختبارات اتشغلت** (بطلب صريح)؛ typecheck + lint بس.
+
+- **وضعين في نفس المشغّل** (`useAudioStore`، عنصر `<audio>` واحد): `session = 'ayah'` (زي 11.18 بالظبط) و`session = 'surah'` = **ملف واحد للسورة** `https://cdn.islamic.network/quran/audio-surah/{bitrate}/{folder}/{sura}.mp3`. «تشغيل السورة كاملة» **مبقاش** بيشغّل الآيات ورا بعض (`playSura` اتشال، وبقى `playFullSurah`). أي طلب جديد بيوقف القديم الأول (`halt()`) وبياخد token جديد، فمفيش تداخل بين الوضعين.
+- **قائمة قرّاء منفصلة:** مصدرها `https://cdn.islamic.network/quran/info/by-surah/info.json` بس (أي فولدر `ar.*`، والـ bitrates، والسور الموجودة). اتأكدنا (2026-11-17): 159 فولدر (156 `ar.*`)، تقريباً كلهم 128kbps و114 سورة. الأسماء من `/edition?type=surahbysurah`. ⚠️ **الـ edition id مش دايماً = الفولدر** (`ar.alafasy-surah` → فولدر `ar.alafasy`، و`/audio-surah/128/ar.alafasy-surah/1.mp3` = 403)، فالـ identifier عندنا = **اسم الفولدر**، والـ edition بيتربط بيه (نفس الاسم أو من غير `-surah`) عشان الاسم بس. `ar.alafasy` موجود في القائمتين لكن كتسجيلين مختلفين، والقائمتين مش بيتخلطوا.
+- **الداتا بيز (إضافة بس):** `prisma/sql/002_quran_audio_surah.sql` → جدول `audio_surah_reciters` (اتطبق على `local`). `npm run db:migrate:audio` بقى بيطبق كل `NNN_*.sql` بالترتيب (نفس الحماية: CREATE TABLE IF NOT EXISTS بس). model `AudioSurahReciter` في Prisma.
+- **الـ API:**
+
+| Method | المسار | ملاحظات |
+|---|---|---|
+| GET | `/quran-audio/full-surah-reciters` | `{ data: [{ identifier, name, englishName, bitrate, surahCount }], defaultReciter, source }`. من الداتا بيز لو اتعمل sync، وإلا live من الـ listing (cache 12 ساعة، ونسخة قديمة لو الـ CDN واقع) |
+| GET | `/quran-audio/full-surah/:surahNumber?reciter=` | `{ reciter, sura, url, bitrate }`. 404 لقارئ مش في القائمة أو سورة مش موجودة عنده. 400 لرقم سورة برا 1–114 |
+| GET | `/admin/quran-audio/surah-reciters` | الإحصائيات + القائمة + `missingSurahs` |
+| POST | `/admin/quran-audio/sync/surah-reciters` | متزامن (طلبين). upsert بالفولدر، واللي اختفى → `is_available = 0` |
+| PATCH | `/admin/quran-audio/surah-reciters/:identifier` | `{ isActive }` |
+
+- **اختيار القارئ:** `surahReciter` اتضاف لـ `quran_audio` (اختياري: التفضيلات القديمة لسه بتتقري). القارئ الفعلي: المحفوظ ← نفس قارئ الآيات لو موجود في قائمة السور (بالـ identifier أو نفس الاسم العربي) ← الافتراضي (`ar.alafasy`). لو قارئ الآيات مالوش تسجيل كامل، بتظهر رسالة. القائمة بتعرض بس القرّاء اللي عندهم ملفات سور، فمفيش URL غلط.
+- **الواجهة:** صفحة السورة فيها كارت فيه «قارئ الآيات» و«قارئ السورة كاملة» + «تشغيل السورة كاملة» (بيبقى إيقاف/متابعة لو السورة دي شغالة). المشغّل فيه badge «السورة كاملة»/«آية بآية»، والسورة، والقارئ، والوقت الحالي/الكلي (h:mm:ss للملفات الطويلة)، و ±10 ثانية، والسورة السابقة/التالية، و«بعد انتهاء السورة: إيقاف / السورة التالية». شيت الإعدادات فيه القائمتين. الأدمن: قسم «قرّاء السورة كاملة» في `/admin/dashboard/audio`.
+- **قيود:** الـ highlight للآية مش بيشتغل في وضع السورة كاملة (مفيش توقيتات للآيات جوه الملف). الـ listing مش documented (بيتقري بحذر). الملفات كبيرة (البقرة 128kbps ≈ 120MB) بس بتتعمل لها streaming (الـ CDN بيدعم `Accept-Ranges`).

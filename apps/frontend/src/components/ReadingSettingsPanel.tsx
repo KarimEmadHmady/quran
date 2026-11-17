@@ -3,6 +3,8 @@
 import { FONT_SIZE_MAX, FONT_SIZE_MIN } from '@/lib/shapes';
 import { resolvedTheme, useSettingsStore } from '@/store/useSettingsStore';
 import { useUiStore } from '@/store/useUiStore';
+import { ReciterSelect } from './audio/ReciterSelect';
+import { SurahReciterSelect } from './audio/SurahReciterSelect';
 import { BottomSheet } from './BottomSheet';
 import { Icon } from './Icon';
 
@@ -91,6 +93,13 @@ export function ReadingSettingsPanel() {
             </div>
             <p className="text-xs text-[var(--muted)]">نتائج البحث بتفضل بالرسم العثماني.</p>
           </fieldset>
+        </div>
+        <p className="ui-section-label">التلاوة</p>
+        <div className="rounded-2xl bg-[var(--surface-2)] px-4 py-4">
+          <ReciterSelect label="قارئ الآيات" />
+          <p className="mt-2 text-xs text-[var(--muted)]">لزر «استماع» على كل آية (ملف لكل آية).</p>
+          <SurahReciterSelect className="mt-4" />
+          <p className="mt-2 text-xs text-[var(--muted)]">لزر «تشغيل السورة كاملة» (ملف واحد للسورة).</p>
         </div>
       </div>
     </BottomSheet>

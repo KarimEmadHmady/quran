@@ -16,6 +16,7 @@
     "typecheck:scripts": "tsc -p scripts/tsconfig.json",
     "verify:db": "node --env-file=apps/backend/.env scripts/verify-db.ts",
     "seed:admin": "node --env-file=apps/backend/.env --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/seed-admin.ts",
+    "db:migrate:audio": "node --env-file=apps/backend/.env --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/apply-audio-migration.ts",
     "db:test:create": "node --env-file=apps/backend/.env --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/create-test-db.ts"
   },
   "devDependencies": {

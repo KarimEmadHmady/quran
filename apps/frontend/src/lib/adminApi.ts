@@ -135,6 +135,106 @@ export interface SearchIndexStatus {
   ready: boolean;
 }
 
+// ------------------------------------------------------------------ Quran audio
+
+export interface AudioSyncJob {
+  id: number;
+  kind: 'reciters' | 'audio';
+  status: 'running' | 'completed' | 'failed' | 'interrupted';
+  recitersTotal: number;
+  recitersDone: number;
+  currentReciter: string | null;
+  itemsTotal: number;
+  itemsDone: number;
+  missingCount: number;
+  errorCount: number;
+  pendingReciters: string[];
+  errors: { at: string; reciter: string | null; message: string }[];
+  startedAt: string;
+  updatedAt: string;
+  finishedAt: string | null;
+  resumable: boolean;
+  summary?: { total: number; added: number; updated: number; markedUnavailable: number; verified: number; failed: { identifier: string; error: string }[] };
+}
+
+export interface AudioSyncStatus {
+  running: AudioSyncJob | null;
+  lastReciterJob: AudioSyncJob | null;
+  lastAudioJob: AudioSyncJob | null;
+}
+
+export interface AdminReciter {
+  identifier: string;
+  name: string;
+  englishName: string | null;
+  language: string;
+  format: string;
+  type: string;
+  bitrate: number | null;
+  secondaryBitrates: number[];
+  isAvailable: boolean;
+  isActive: boolean;
+  verified: boolean;
+  verifiedAt: string | null;
+  verificationError: string | null;
+  lastSyncedAt: string | null;
+  audio: { available: number; missing: number };
+}
+
+export interface AudioOverview {
+  schemaReady: boolean;
+  reciters: { total: number; available: number; active: number; verified: number };
+  ayahs: number;
+  audio: { total: number; available: number; missing: number; expected: number };
+  lastSyncAt: string | null;
+  sync: AudioSyncStatus;
+  reciterList: AdminReciter[];
+}
+
+export interface AdminEdition {
+  identifier: string;
+  name: string;
+  englishName: string | null;
+  language: string;
+  format: string;
+  type: string;
+  compatible: boolean;
+}
+
+/** Full-sura reciter (one MP3 per sura; separate catalogue from AdminReciter). */
+export interface AdminSurahReciter {
+  identifier: string;
+  apiIdentifier: string | null;
+  name: string | null;
+  englishName: string | null;
+  bitrate: number;
+  bitrates: number[];
+  surahCount: number;
+  missingSurahs: number[];
+  isAvailable: boolean;
+  isActive: boolean;
+  lastSyncedAt: string | null;
+}
+
+export interface AdminSurahReciters {
+  schemaReady: boolean;
+  total: number;
+  available: number;
+  active: number;
+  complete: number;
+  lastSyncAt: string | null;
+  data: AdminSurahReciter[];
+}
+
+export interface SurahReciterSyncResult {
+  total: number;
+  added: number;
+  updated: number;
+  markedUnavailable: number;
+  withoutName: number;
+  incomplete: number;
+}
+
 // ------------------------------------------------------------------ calls
 
 export const adminApi = {
@@ -183,6 +283,29 @@ export const adminApi = {
     adminFetch<{ data: AdminAyah[]; missing: string[] }>('/admin/ayahs/lookup', {
       query: { refs: refs.join(',') },
       signal,
+    }),
+
+  audioOverview: (signal?: AbortSignal) => adminFetch<AudioOverview>('/admin/quran-audio/overview', { signal }),
+  audioSyncStatus: (signal?: AbortSignal) => adminFetch<AudioSyncStatus>('/admin/quran-audio/sync/status', { signal }),
+  audioEditions: (signal?: AbortSignal) => adminFetch<{ data: AdminEdition[] }>('/admin/quran-audio/editions', { signal }),
+  syncReciters: (force: boolean) =>
+    adminFetch<AudioSyncJob>('/admin/quran-audio/sync/reciters', { method: 'POST', body: { force } }),
+  syncAudio: (body: { resume?: boolean; reciters?: string[] }) =>
+    adminFetch<AudioSyncJob>('/admin/quran-audio/sync/audio', { method: 'POST', body }),
+  setReciterActive: (identifier: string, isActive: boolean) =>
+    adminFetch<AdminReciter>(`/admin/quran-audio/reciters/${encodeURIComponent(identifier)}`, {
+      method: 'PATCH',
+      body: { isActive },
+    }),
+
+  surahReciters: (signal?: AbortSignal) =>
+    adminFetch<AdminSurahReciters>('/admin/quran-audio/surah-reciters', { signal }),
+  syncSurahReciters: () =>
+    adminFetch<SurahReciterSyncResult>('/admin/quran-audio/sync/surah-reciters', { method: 'POST' }),
+  setSurahReciterActive: (identifier: string, isActive: boolean) =>
+    adminFetch<AdminSurahReciter>(`/admin/quran-audio/surah-reciters/${encodeURIComponent(identifier)}`, {
+      method: 'PATCH',
+      body: { isActive },
     }),
 
   tafsirBooks: (signal?: AbortSignal) => adminFetch<{ data: AdminTafsirBook[] }>('/admin/tafsir-books', { signal }),

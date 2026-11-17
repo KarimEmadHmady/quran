@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Cairo } from 'next/font/google';
 import { BottomNav, MainFrame, TopBar } from '@/components/AppChrome';
+import { AudioPlayerBar } from '@/components/audio/AudioPlayerBar';
 import { FloatingCart } from '@/components/FloatingCart';
 import { Providers } from '@/components/Providers';
 import { ReadingSettingsPanel } from '@/components/ReadingSettingsPanel';
@@ -23,10 +24,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: BOOT_SCRIPT }} />
       </head>
-      <body className="min-h-screen antialiased">
+      {/* Browser extensions inject attributes on <body> (e.g. data-cjcrx) before hydration. */}
+      <body className="min-h-screen antialiased" suppressHydrationWarning>
         <Providers>
           <TopBar />
           <MainFrame>{children}</MainFrame>
+          <AudioPlayerBar />
           <BottomNav />
           <FloatingCart />
           <ReadingSettingsPanel />

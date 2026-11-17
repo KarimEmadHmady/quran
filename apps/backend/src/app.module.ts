@@ -13,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { QuranModule } from './quran/quran.module';
 import { ExportModule } from './export/export.module';
 import { SearchModule } from './search/search.module';
+import { QuranAudioModule } from './quran-audio/quran-audio.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { SearchModule } from './search/search.module';
     QuranModule,
     SearchModule,
     ExportModule,
+    QuranAudioModule,
     AdminModule,
   ],
   providers: [

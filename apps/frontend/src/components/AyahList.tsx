@@ -1,16 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ayahHref, type Ayah } from '@/lib/quran';
+import { useAudioStore } from '@/store/useAudioStore';
 import { useBookmarkStore } from '@/store/useBookmarkStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useUiStore, type AyahView } from '@/store/useUiStore';
+import { AyahPlayButton } from './audio/AyahPlayButton';
 import { CartToggle } from './CartToggle';
 import { Icon } from './Icon';
 import { KhatmaButton } from './KhatmaButton';
 import { ShareAsImageModal, type ImageAction, type ShareTarget } from './ShareAsImageModal';
 import { TafsirPanel } from './TafsirPanel';
+import { useAutoKhatmaReading } from './useAutoKhatmaReading';
 
 const toArabicDigits = (n: number) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
 const BOOKMARK_DEBOUNCE_MS = 500;
@@ -28,6 +31,7 @@ export function AyahList({
   suraNames,
   trackBookmark = false,
   showRefs = false,
+  showViewToggle = true,
 }: {
   ayahs: Ayah[];
   /** sura number -> Arabic name (for refs and the image card). */
@@ -35,6 +39,8 @@ export function AyahList({
   trackBookmark?: boolean;
   /** Show "سورة X · آية Y" on each ayah (topic pages). */
   showRefs?: boolean;
+  /** false when the page puts the layout choice elsewhere (the sura page's audio menu). */
+  showViewToggle?: boolean;
 }) {
   const script = useSettingsStore((s) => s.script);
   const saveBookmark = useBookmarkStore((s) => s.save);
@@ -44,6 +50,19 @@ export function AyahList({
   const [openTafsir, setOpenTafsir] = useState<Set<number>>(new Set());
   const [selected, setSelected] = useState<number | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  // Daily wird: on the reading page (the one that tracks the bookmark), ayahs scrolled past are
+  // marked «✓ مقروءة» automatically (the «تمت القراءة» button still works too).
+  const ayahIds = useMemo(() => ayahs.map((a) => a.id), [ayahs]);
+  useAutoKhatmaReading(listRef, ayahIds, trackBookmark, view);
+  // The ayah being recited by the shared player (highlighted, and followed while it plays).
+  const playingId = useAudioStore((s) => (s.status === 'idle' ? null : (s.current?.ayahId ?? null)));
+  const audioActive = useAudioStore((s) => s.status === 'playing' || s.status === 'buffering' || s.status === 'loading');
+
+  useEffect(() => {
+    if (playingId === null || !audioActive || !listRef.current) return;
+    const el = listRef.current.querySelector<HTMLElement>('[data-ayah-id="' + playingId + '"]');
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  }, [playingId, audioActive]);
 
   useEffect(() => {
     if (!trackBookmark || !listRef.current || typeof IntersectionObserver === 'undefined') return;
@@ -94,6 +113,7 @@ export function AyahList({
   /** Tafsir / download / share / khatma / cart for one ayah (both layouts). */
   const actions = (a: Ayah) => (
     <>
+      <AyahPlayButton suraNumber={a.suraNumber} ayahNumber={a.ayahNumber} />
       <button
         type="button"
         onClick={() => toggleTafsir(a.id)}
@@ -120,7 +140,7 @@ export function AyahList({
 
   return (
     <>
-      <ViewToggle view={view} onChange={setView} />
+      {showViewToggle && <ViewToggle view={view} onChange={setView} />}
 
       {view === 'vertical' ? (
         <div ref={listRef}>
@@ -128,7 +148,13 @@ export function AyahList({
             {ayahs.map((a) => {
               const suraName = suraNames[a.suraNumber] ?? '';
               return (
-                <li key={a.id} id={`ayah-${a.id}`} data-ayah-id={a.id} className="ui-card p-5">
+                <li
+                  key={a.id}
+                  id={`ayah-${a.id}`}
+                  data-ayah-id={a.id}
+                  aria-current={playingId === a.id ? 'true' : undefined}
+                  className={`ui-card p-5 transition ${playingId === a.id ? '!border-[var(--accent)] ring-2 ring-[var(--accent)]/40' : ''}`}
+                >
                   {showRefs && (
                     <Link
                       href={ayahHref(a.suraNumber, a.id)}
@@ -180,7 +206,11 @@ export function AyahList({
                       }
                     }}
                     className={`cursor-pointer rounded-md transition-colors ${
-                      isSelected ? 'bg-[var(--badge-blue-bg)] text-[var(--badge-blue-fg)]' : 'hover:bg-[var(--surface-2)]'
+                      isSelected
+                        ? 'bg-[var(--badge-blue-bg)] text-[var(--badge-blue-fg)]'
+                        : playingId === a.id
+                          ? 'bg-[var(--mark)] text-[var(--mark-fg)]'
+                          : 'hover:bg-[var(--surface-2)]'
                     }`}
                   >
                     {textOf(a)}{' '}
@@ -197,7 +227,8 @@ export function AyahList({
         <div
           role="region"
           aria-label={`إجراءات الآية ${selectedAyah.ayahNumber}`}
-          className="fixed inset-x-0 bottom-20 z-20 mx-auto w-[calc(100%-2rem)] max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-2xl"
+          style={{ bottom: 'calc(5rem + var(--player-h, 0px))' }}
+          className="fixed inset-x-0 z-20 mx-auto w-[calc(100%-2rem)] max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-3 shadow-2xl"
         >
           <div className="mb-2 flex items-center justify-between gap-2 text-sm">
             <span className="font-semibold">
@@ -245,7 +276,7 @@ function ViewToggle({ view, onChange }: { view: AyahView; onChange: (v: AyahView
   return (
     <div className="mb-3 flex justify-end">
       <div role="radiogroup" aria-label="طريقة العرض" className="inline-flex gap-1 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-1">
-        {item('vertical', 'آية تحت آية', 'menu')}
+        {item('vertical', 'آية تلو الاخرى', 'menu')}
         {item('mushaf', 'وضع المصحف', 'book')}
       </div>
     </div>

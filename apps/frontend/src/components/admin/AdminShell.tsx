@@ -19,6 +19,7 @@ export const ADMIN_NAV: { href: string; label: string; icon: IconName }[] = [
   { href: '/admin/dashboard/ayahs', label: 'الآيات', icon: 'file' },
   { href: '/admin/dashboard/tafsir-books', label: 'كتب التفسير', icon: 'tafsir' },
   { href: '/admin/dashboard/tafsirs', label: 'التفاسير', icon: 'search' },
+  { href: '/admin/dashboard/audio', label: 'التلاوات', icon: 'headphones' },
 ];
 
 const isActive = (pathname: string, href: string) =>

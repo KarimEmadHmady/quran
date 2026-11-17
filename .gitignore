@@ -13,6 +13,8 @@ coverage/
 
 # database dumps (never commit)
 *.sql
+# ...except the additive migrations, which must be versioned
+!apps/backend/prisma/sql/*.sql
 *.sql.gz
 
 # OS / editor
