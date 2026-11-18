@@ -42,6 +42,10 @@
   --badge-blue-fg: #1d4ed8;
   --track: #e4e4e7;
   --quran-size: 22px;
+  /* Reader chrome: top bar height (its 1px border comes on top), and the bottom room every reader
+     page keeps free for the tab bar, the safe area and the audio player bar (--player-h). */
+  --topbar-h: 3.5rem;
+  --frame-pb: calc(5rem + env(safe-area-inset-bottom) + var(--player-h, 0px));
   /* legacy aliases used across components */
   --card: var(--surface);
 }
@@ -72,6 +76,8 @@
 
 html {
   scroll-behavior: smooth;
+  /* Keeps the layout (and the top bar logo) from shifting when the menu locks page scrolling. */
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -103,7 +109,8 @@ mark.hl {
 }
 
 /* Smooth jump to #ayah-… and keep it clear of the top bar. */
-[id^='ayah-'] {
+[id^='ayah-'],
+[id^='dhikr-'] {
   scroll-margin-top: 5rem;
 }
 

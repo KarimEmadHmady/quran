@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Cairo } from 'next/font/google';
+import { AdhkarReminderScheduler } from '@/components/adhkar/AdhkarReminderScheduler';
 import { BottomNav, MainFrame, TopBar } from '@/components/AppChrome';
 import { AudioPlayerBar } from '@/components/audio/AudioPlayerBar';
 import { FloatingCart } from '@/components/FloatingCart';
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FloatingCart />
           <ReadingSettingsPanel />
           <ScrollToTop />
+          <AdhkarReminderScheduler />
         </Providers>
       </body>
     </html>

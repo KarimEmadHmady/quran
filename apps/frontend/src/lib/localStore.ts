@@ -12,6 +12,16 @@ export const STORAGE_KEYS = {
   audio: 'quran_audio',
   /** Cart ayah ids the user explicitly set to «بدون تفسير» (others default to the first book). */
   cartNoTafsir: 'quran_cart_no_tafsir',
+  /** Adhkar: favourite items, as "categoryId:itemNumber" strings. Not part of spec §3. */
+  adhkarFavorites: 'quran_adhkar_favorites',
+  /** Adhkar: recently opened categories (most recent first). */
+  adhkarRecent: 'quran_adhkar_recent',
+  /** Adhkar: tasbih counters per category for the current period (day, or morning / evening). */
+  adhkarProgress: 'quran_adhkar_progress',
+  /** Adhkar reminders: enabled + time per slot (morning, evening, sleep, wake). */
+  adhkarReminders: 'quran_adhkar_reminders',
+  /** Adhkar reminders: the local date each slot was last notified (no duplicates across tabs). */
+  adhkarRemindersFired: 'quran_adhkar_reminders_fired',
   /** Last listening position (what, which reciter, where, playing or paused). Metadata only. */
   audioSession: 'quran_audio_session',
 } as const;

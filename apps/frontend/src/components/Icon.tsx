@@ -40,17 +40,31 @@ const PATHS = {
   volume: 'M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11',
   mute: 'M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6',
   headphones: 'M4 15v-3a8 8 0 0 1 16 0v3M4 15h3v6H5a1 1 0 0 1-1-1zM20 15h-3v6h2a1 1 0 0 0 1-1z',
+  // Adhkar
+  beads: 'M12 3a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM6.5 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM17.5 7a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM8 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM16 14a2 2 0 1 1 0 4 2 2 0 0 1 0-4zM12 18v3',
+  heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.7A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
+  bell: 'M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0',
+  reset: 'M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4',
   refresh: 'M20 11a8 8 0 0 0-14.9-3M4 4v4h4M4 13a8 8 0 0 0 14.9 3M20 20v-4h-4',
 } as const;
 
 export type IconName = keyof typeof PATHS;
 
-export function Icon({ name, className = 'h-5 w-5' }: { name: IconName; className?: string }) {
+export function Icon({
+  name,
+  className = 'h-5 w-5',
+  filled = false,
+}: {
+  name: IconName;
+  className?: string;
+  /** Fills the shape (e.g. a selected heart). */
+  filled?: boolean;
+}) {
   return (
     <svg
       aria-hidden
       viewBox="0 0 24 24"
-      fill="none"
+      fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"
       strokeWidth={1.8}
       strokeLinecap="round"

@@ -253,3 +253,38 @@ model AudioSurahReciter {
 
   @@map("audio_surah_reciters")
 }
+
+// ---------------------------------------------------------------------------------------------
+// Adhkar (prisma/sql/003_adhkar.sql, filled by `npm run db:import:adhkar`). Added by hand like
+// the audio models; never migrated through Prisma. Read-only for the API.
+
+model AdhkarCategory {
+  /// = the source category id (adhkar.json), not auto-generated
+  id        Int          @id @db.UnsignedSmallInt
+  title     String       @db.VarChar(255)
+  sortOrder Int          @unique(map: "uq_adhkar_categories_sort") @map("sort_order") @db.UnsignedSmallInt
+  audioFile String?      @map("audio_file") @db.VarChar(150)
+  createdAt DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  items     AdhkarItem[]
+
+  @@map("adhkar_categories")
+}
+
+model AdhkarItem {
+  id          Int            @id @default(autoincrement()) @db.UnsignedInt
+  categoryId  Int            @map("category_id") @db.UnsignedSmallInt
+  /// = the source item id inside its category
+  itemNumber  Int            @map("item_number") @db.UnsignedSmallInt
+  sortOrder   Int            @map("sort_order") @db.UnsignedSmallInt
+  text        String         @db.Text
+  repeatCount Int            @map("repeat_count") @db.UnsignedSmallInt
+  audioFile   String?        @map("audio_file") @db.VarChar(150)
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at") @db.Timestamp(0)
+  category    AdhkarCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: Cascade, map: "fk_adhkar_items_category")
+
+  @@unique([categoryId, itemNumber], map: "uq_adhkar_items_number")
+  @@unique([categoryId, sortOrder], map: "uq_adhkar_items_sort")
+  @@map("adhkar_items")
+}

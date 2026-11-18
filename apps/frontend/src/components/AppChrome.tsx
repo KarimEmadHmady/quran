@@ -7,6 +7,7 @@ import { useAudioStore } from '@/store/useAudioStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useUiStore } from '@/store/useUiStore';
 import { Icon, type IconName } from './Icon';
+import { MobileMenu } from './MobileMenu';
 import { SettingsButton } from './ReadingSettingsPanel';
 
 /** The admin dashboard (/admin/*) has its own layout: the reader chrome is not rendered there. */
@@ -18,46 +19,48 @@ export function MainFrame({ children }: { children: React.ReactNode }) {
   if (isAdminPath(pathname)) return <>{children}</>;
   // Extra bottom room while the audio player bar is shown (--player-h, set by AudioPlayerBar).
   return (
-    <main className="mx-auto max-w-2xl px-4 pt-5" style={{ paddingBottom: 'calc(7rem + var(--player-h, 0px))' }}>
+    <main
+      className="mx-auto max-w-2xl px-4 pt-4"
+      style={{ paddingBottom: 'var(--frame-pb)' }}
+    >
       {children}
     </main>
   );
 }
 
-/** Design top bar: the app name, and the settings gear. */
+/** Design top bar: the app name, then (left side in RTL) the menu button and the settings gear. */
 export function TopBar() {
   const pathname = usePathname();
   if (isAdminPath(pathname)) return null;
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex h-[var(--topbar-h)] max-w-2xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 text-xl font-bold">
           {/* app/icon.svg (served by Next.js at /icon.svg). First child = right side in RTL. */}
           {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG, no optimization needed */}
           <img src="/icon.svg" alt="" aria-hidden width={26} height={26} className="h-[26px] w-[26px] shrink-0" />
           القرآن الكريم
         </Link>
-        <SettingsButton />
+        <div className="flex items-center gap-1">
+          <MobileMenu />
+          <SettingsButton />
+        </div>
       </div>
     </header>
   );
 }
 
-/** Nav icon size: compact on phones (7 items must fit), original size from sm up. */
-const NAV_ICON = 'h-5 w-5 sm:h-6 sm:w-6';
+const NAV_ICON = 'h-6 w-6';
 
 const TABS: { href: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
   { href: '/', label: 'الرئيسية', icon: 'home', match: (p) => p === '/' },
-  { href: '/surah', label: 'السور', icon: 'book', match: (p) => p.startsWith('/surah') },
-  { href: '/topics', label: 'المواضيع', icon: 'folder', match: (p) => p.startsWith('/topics') },
   { href: '/search', label: 'البحث', icon: 'search', match: (p) => p.startsWith('/search') },
 ];
 
 /**
- * Design bottom tab bar (7 items, RTL order): home, surahs, topics, cart (opens the cart sheet),
- * search, audio player, settings (opens the settings sheet). Khatma is on the home screen tiles.
- * On phones (< sm) icons, labels and padding shrink so all 7 fit the width without scrolling;
- * from sm up it keeps the original sizes.
+ * Bottom tab bar: exactly 4 equal-width items (RTL order): home, cart (opens the cart sheet),
+ * search, player (toggles the audio player). Settings live in the top bar (gear), and surahs /
+ * topics / adhkar / daily wird in the top bar menu (MobileMenu).
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -74,7 +77,7 @@ export function BottomNav() {
   if (isAdminPath(pathname)) return null;
 
   const item = (active: boolean) =>
-    `flex min-w-0 flex-1 flex-col items-center gap-0.5 whitespace-nowrap px-0.5 py-1.5 text-[0.6rem] leading-tight transition sm:gap-1 sm:px-0 sm:py-2 sm:text-[0.7rem] ${
+    `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 whitespace-nowrap py-2 text-[0.72rem] leading-tight transition focus-visible:outline-2 focus-visible:outline-[var(--accent)] ${
       active ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
     }`;
   const tab = (t: (typeof TABS)[number]) => (
@@ -89,10 +92,8 @@ export function BottomNav() {
       aria-label="التنقل الرئيسي"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur"
     >
-      <div className="mx-auto flex max-w-2xl items-stretch px-0.5 pb-[env(safe-area-inset-bottom)] sm:px-2">
+      <div className="mx-auto flex max-w-2xl items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
         {tab(TABS[0])}
-        {tab(TABS[1])}
-        {tab(TABS[2])}
         <button
           type="button"
           onClick={() => open('cart')}
@@ -109,13 +110,13 @@ export function BottomNav() {
           </span>
           السلة
         </button>
-        {tab(TABS[3])}
+        {tab(TABS[1])}
         <button
           type="button"
           onClick={() => setPlayerOpen(!playerOpen)}
           className={item(playerOpen)}
           aria-expanded={playerOpen}
-          aria-label={audioSaved ? 'المشغّل (يوجد استماع محفوظ)' : 'المشغّل'}
+          aria-label={audioSaved ? 'التشغيل (يوجد استماع محفوظ)' : 'التشغيل'}
         >
           <span className="relative">
             <Icon name="headphones" className={NAV_ICON} />
@@ -128,11 +129,7 @@ export function BottomNav() {
               />
             )}
           </span>
-          المشغّل
-        </button>
-        <button type="button" onClick={() => open('settings')} className={item(sheet === 'settings')}>
-          <Icon name="settings" className={NAV_ICON} />
-          الإعدادات
+          التشغيل
         </button>
       </div>
     </nav>

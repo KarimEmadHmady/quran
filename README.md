@@ -326,4 +326,3 @@ quran_app
 admin@quran.app
 3352481900aA#
 
-- الجمل الفصحى لعربية 

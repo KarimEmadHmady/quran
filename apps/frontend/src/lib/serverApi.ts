@@ -1,4 +1,5 @@
 import 'server-only';
+import type { AdhkarCategory, Dhikr, ReminderDefinition } from './adhkarApi';
 import type { Ayah, Pagination, SuraInfo, TopicNode } from './quran';
 
 /**
@@ -57,4 +58,20 @@ export async function getTopic(
   page: number,
 ): Promise<{ topic: TopicNode; ayahs: Ayah[]; pagination: Pagination } | null> {
   return get(`/topics/${id}?page=${page}&limit=50`);
+}
+
+// ------------------------------------------------------------------ adhkar
+
+export async function getAdhkarCategories(): Promise<AdhkarCategory[]> {
+  return (await get<{ data: AdhkarCategory[] }>('/adhkar/categories'))?.data ?? [];
+}
+
+/** One category with all its items (no pagination: categories are short). null = not found. */
+export async function getAdhkarCategory(id: number): Promise<{ category: AdhkarCategory; items: Dhikr[] } | null> {
+  return get(`/adhkar/categories/${id}`);
+}
+
+/** Time-of-day reminder slots (morning, evening, sleep, wake) and their categories. */
+export async function getAdhkarReminders(): Promise<ReminderDefinition[]> {
+  return (await get<{ data: ReminderDefinition[] }>('/adhkar/reminders'))?.data ?? [];
 }

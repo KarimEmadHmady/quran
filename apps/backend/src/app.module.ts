@@ -14,6 +14,7 @@ import { QuranModule } from './quran/quran.module';
 import { ExportModule } from './export/export.module';
 import { SearchModule } from './search/search.module';
 import { QuranAudioModule } from './quran-audio/quran-audio.module';
+import { AdhkarModule } from './adhkar/adhkar.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { QuranAudioModule } from './quran-audio/quran-audio.module';
     SearchModule,
     ExportModule,
     QuranAudioModule,
+    AdhkarModule,
     AdminModule,
   ],
   providers: [

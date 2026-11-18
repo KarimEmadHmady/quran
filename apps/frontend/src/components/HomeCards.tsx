@@ -15,16 +15,16 @@ export function HomeCards({ suraNames }: { suraNames: Record<number, string> }) 
   if (!bHydrated || !kHydrated) return null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {bookmark && (
-        <Link href={ayahHref(bookmark.suraNumber, bookmark.ayahId)} className="ui-hero block p-5" data-testid="continue-reading">
+        <Link href={ayahHref(bookmark.suraNumber, bookmark.ayahId)} className="ui-hero block px-4 py-3" data-testid="continue-reading">
           <span className="block text-sm text-[var(--hero-muted)]">أكمل القراءة من هنا</span>
-          <span className="mt-1 block text-lg font-bold">
+          <span className="mt-0.5 block text-base font-bold">
             سورة {suraNames[bookmark.suraNumber] ?? bookmark.suraNumber} - آية {bookmark.ayahNumber}
           </span>
         </Link>
       )}
-      <Link href="/khatma" className="ui-card block p-4 hover:border-[var(--accent)]">
+      <Link href="/khatma" className="ui-card block px-4 py-3 hover:border-[var(--accent)]">
         <span className="block text-sm text-[var(--muted)]">الورد اليومى </span>
         <span className="font-bold">
           {!khatma

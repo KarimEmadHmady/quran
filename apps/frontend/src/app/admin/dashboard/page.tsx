@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { useAdmin } from '@/components/admin/AdminShell';
 import { Button, ConfirmDialog, ErrorState, Spinner, useToast } from '@/components/admin/ui';
 import { statusOf, useAdminData } from '@/components/admin/useAdminData';
@@ -36,14 +36,13 @@ export default function DashboardOverview() {
   const today = new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <>
-      <section className="ui-hero mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div className="mx-auto max-w-5xl">
+      <section className="ui-hero mb-5 flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
         <div>
-          <p className="text-sm text-[var(--hero-muted)]">{today}</p>
-          <h1 className="mt-1 text-2xl font-bold sm:text-3xl">{`أهلاً ${admin.name ?? ''}`.trim()}</h1>
-          <p className="mt-1 text-sm opacity-80">ملخص محتوى التطبيق</p>
+          <h1 className="text-lg font-bold sm:text-xl">{`أهلاً ${admin.name ?? ''}`.trim()}</h1>
+          <p className="text-xs text-[var(--hero-muted)]">{today}</p>
         </div>
-        <ReindexButton onClick={() => setConfirm(true)} />
+ 
       </section>
 
       {value.state === 'loading' && <Spinner />}
@@ -51,20 +50,18 @@ export default function DashboardOverview() {
       {value.state === 'ready' && (
         <>
           <h2 className="ui-section-label mb-3">المحتوى القابل للتعديل</h2>
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" data-testid="stats">
+          <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="stats">
             <Stat
               icon="folder"
-              tone="blue"
               label="المواضيع"
               value={value.data.topics.total}
               chips={[`${fmt(value.data.topics.banned)} محظور`, `${fmt(value.data.topics.hidden)} مخفي`]}
               href="/admin/dashboard/topics"
             />
-            <Stat icon="link" tone="blue" label="روابط الآيات بالمواضيع" value={value.data.topicLinks} href="/admin/dashboard/topics" />
-            <Stat icon="book" tone="blue" label="السور" value={value.data.suras} href="/admin/dashboard/suras" />
+            <Stat icon="link" label="روابط الآيات بالمواضيع" value={value.data.topicLinks} href="/admin/dashboard/topics" />
+            <Stat icon="book" label="السور" value={value.data.suras} href="/admin/dashboard/suras" />
             <Stat
               icon="tafsir"
-              tone="blue"
               label="كتب التفسير"
               value={value.data.tafsirBooks.total}
               chips={[`${fmt(value.data.tafsirBooks.visible)} ظاهر للمستخدمين`]}
@@ -73,12 +70,30 @@ export default function DashboardOverview() {
           </div>
 
           <h2 className="ui-section-label mb-3">للقراءة فقط</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Stat icon="file" tone="green" label="الآيات" value={value.data.ayahs} chips={['للقراءة فقط']} href="/admin/dashboard/ayahs" />
-            <Stat icon="search" tone="green" label="نصوص التفسير" value={value.data.tafsirs} chips={['للقراءة فقط']} href="/admin/dashboard/tafsirs" />
+          <div className="ui-card mb-10 divide-y divide-[var(--border)] overflow-hidden">
+            <ReadRow icon="file" label="الآيات" value={value.data.ayahs} href="/admin/dashboard/ayahs" />
+            <ReadRow icon="search" label="نصوص التفسير" value={value.data.tafsirs} href="/admin/dashboard/tafsirs" />
           </div>
         </>
       )}
+
+      <h2 className="ui-section-label mb-3">فهرس البحث</h2>
+      <section className="ui-card flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+        <div className="max-w-xl">
+          <h3 className="font-bold">ما هو فهرس البحث؟</h3>
+          <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
+            نسخة منظّمة من نصوص الآيات وأسماء السور يحتفظ بها الخادم في الذاكرة، ليجد البحث الآيات بسرعة ويصحّح الأخطاء
+            الإملائية ويفهم المراجع مثل «البقرة 255».
+          </p>
+          <p className="mt-2 text-sm leading-7 text-[var(--muted)]">
+            أعد بناءه بعد أي تعديل حديث (مثل اسم سورة) ليظهر في البحث. البحث يظل يعمل أثناء البناء.
+          </p>
+        </div>
+        <Button variant="ghost" onClick={() => setConfirm(true)} className="shrink-0 !text-[var(--fg)]">
+          <Icon name="search" className="h-4 w-4" />
+          إعادة بناء فهرس البحث
+        </Button>
+      </section>
 
       {confirm && (
         <ConfirmDialog
@@ -94,74 +109,41 @@ export default function DashboardOverview() {
           }}
         />
       )}
-    </>
-  );
-}
-
-/** The button plus a hover / focus explanation (pointer-events off, so clicks are never blocked). */
-function ReindexButton({ onClick }: { onClick: () => void }) {
-  const tipId = useId();
-  return (
-    <div className="group relative w-fit">
-      <Button variant="ghost" onClick={onClick} aria-describedby={tipId} className="!text-[var(--fg)]">
-        <Icon name="search" className="h-4 w-4" />
-        إعادة بناء فهرس البحث
-      </Button>
-      <div
-        id={tipId}
-        role="tooltip"
-        className="pointer-events-none invisible absolute right-0 top-full sm:left-0 sm:right-auto z-30 mt-2 w-72 rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm leading-7 text-[var(--fg)] opacity-0 shadow-xl transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
-      >
-        <p className="mb-1 font-bold">ما هو فهرس البحث؟</p>
-        <p className="text-[var(--muted)]">
-          نسخة منظّمة من نصوص الآيات وأسماء السور يحتفظ بها الخادم في الذاكرة، ليجد البحث الآيات بسرعة ويصحّح الأخطاء
-          الإملائية ويفهم المراجع مثل «البقرة 255».
-        </p>
-        <p className="mt-2 text-[var(--muted)]">
-          إعادة البناء تقرأ المحتوى من قاعدة البيانات من جديد، فتظهر في البحث أي تغييرات حديثة (مثل تعديل اسم سورة). البحث
-          يظل يعمل أثناء ذلك.
-        </p>
-      </div>
     </div>
   );
 }
 
+/** Editable content: a card with a big number, linking to its management page. */
 function Stat({
   icon,
-  tone,
   label,
   value,
   chips = [],
   href,
 }: {
   icon: IconName;
-  tone: 'blue' | 'green';
   label: string;
   value: number;
   chips?: string[];
   href: string;
 }) {
-  const toneClass =
-    tone === 'green'
-      ? 'bg-[var(--badge-green-bg)] text-[var(--badge-green-fg)]'
-      : 'bg-[var(--badge-blue-bg)] text-[var(--badge-blue-fg)]';
   return (
     <Link
       href={href}
-      className="ui-card group flex flex-col gap-4 p-5 transition hover:-translate-y-0.5 hover:border-[var(--accent)] hover:shadow-lg"
+      className="ui-card group flex flex-col gap-3 p-5 transition hover:border-[var(--accent)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
     >
-      <div className="flex items-start justify-between gap-3">
-        <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${toneClass}`}>
-          <Icon name={icon} className="h-6 w-6" />
+      <div className="flex items-center justify-between">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--badge-blue-bg)] text-[var(--badge-blue-fg)]">
+          <Icon name={icon} className="h-5 w-5" />
         </span>
-        <Icon name="chevron" className="h-5 w-5 text-[var(--muted)] transition group-hover:text-[var(--accent)]" />
+        <Icon name="chevron" className="h-4 w-4 text-[var(--muted)] transition group-hover:text-[var(--accent)]" />
       </div>
       <div>
-        <p className="text-sm text-[var(--muted)]">{label}</p>
-        <p className="mt-1 text-3xl font-bold tabular-nums tracking-tight">{fmt(value)}</p>
+        <p className="text-4xl font-bold tabular-nums tracking-tight">{fmt(value)}</p>
+        <p className="mt-1 text-sm text-[var(--muted)]">{label}</p>
       </div>
       {chips.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="mt-auto flex flex-wrap gap-2 border-t border-[var(--border)] pt-3">
           {chips.map((c) => (
             <span key={c} className="ui-badge bg-[var(--surface-2)] text-[var(--muted)]">
               {c}
@@ -169,6 +151,24 @@ function Stat({
           ))}
         </div>
       )}
+    </Link>
+  );
+}
+
+/** Read-only content: a compact row, so it reads as secondary to the editable cards. */
+function ReadRow({ icon, label, value, href }: { icon: IconName; label: string; value: number; href: string }) {
+  return (
+    <Link
+      href={href}
+      className="group flex items-center gap-4 px-5 py-4 transition hover:bg-[var(--surface-2)] focus-visible:outline-2 focus-visible:outline-[var(--accent)]"
+    >
+      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--badge-green-bg)] text-[var(--badge-green-fg)]">
+        <Icon name={icon} className="h-5 w-5" />
+      </span>
+      <span className="flex-1 font-medium">{label}</span>
+      <span className="ui-badge bg-[var(--surface-2)] text-[var(--muted)]">للقراءة فقط</span>
+      <span className="min-w-16 text-left text-xl font-bold tabular-nums">{fmt(value)}</span>
+      <Icon name="chevron" className="h-4 w-4 text-[var(--muted)] transition group-hover:text-[var(--accent)]" />
     </Link>
   );
 }

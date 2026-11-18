@@ -1,11 +1,11 @@
 /**
- * Applies the ADDITIVE Quran audio migrations (apps/backend/prisma/sql/NNN_*.sql, in name
- * order) to the database in DATABASE_URL (apps/backend/.env). Usage (from the repo root):
+ * Applies the ADDITIVE migrations (apps/backend/prisma/sql/NNN_*.sql, in name order: Quran
+ * audio + adhkar) to the database in DATABASE_URL (apps/backend/.env). Usage (from the repo root):
  *
- *   npm run db:migrate:audio
+ *   npm run db:migrate:audio      (alias: npm run db:migrate:adhkar — same runner, all files)
  *
  * Safety: the SQL files are split into statements and EVERY statement must be a
- * `CREATE TABLE IF NOT EXISTS` for one of the audio tables, otherwise nothing runs.
+ * `CREATE TABLE IF NOT EXISTS` for one of the allowed new tables, otherwise nothing runs.
  * Existing tables and data are never altered. Running it twice is a no-op.
  * Never prints the connection string or credentials.
  */
@@ -14,7 +14,15 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import mysql, { type RowDataPacket } from 'mysql2/promise';
 
-const ALLOWED_TABLES = new Set(['audio_reciters', 'ayah_audio', 'audio_sync_jobs', 'audio_surah_reciters']);
+const ALLOWED_TABLES = new Set([
+  'audio_reciters',
+  'ayah_audio',
+  'audio_sync_jobs',
+  'audio_surah_reciters',
+  // 003_adhkar.sql
+  'adhkar_categories',
+  'adhkar_items',
+]);
 const MIGRATION_FILE = /^\d{3}_[a-z0-9_]+\.sql$/;
 const CREATE = /^CREATE TABLE IF NOT EXISTS `([a-z_]+)`/;
 

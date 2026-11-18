@@ -50,6 +50,8 @@
 
 ## 2. هيكلة المشروع (Monorepo)
 
+> ⚠️ ده **التصميم الأصلي** (وقت التخطيط). الهيكلة الفعلية في **11.2**: مثلاً `normalize` في `packages/text-utils` مش في `search/text/`، والسكربتات `.ts` بتشتغل بـ Node مباشرة.
+
 ```
 quran_app/                           # جذر الـ monorepo (npm workspaces + git)
 ├── apps/
@@ -90,6 +92,8 @@ quran_app/                           # جذر الـ monorepo (npm workspaces + 
 ---
 
 ## 3. الـ API (مختصر)
+
+> ده الجدول الأصلي من الخطة. **القائمة الفعلية الكاملة في 11.3** (وفيها الصوت والأذكار والأدمن).
 
 | Method | المسار | الوصف |
 |---|---|---|
@@ -408,7 +412,7 @@ interface SearchableDoc { type: 'ayah' | 'hadith'; id: number; displayText: stri
 
 ## 8. المراحل (Roadmap)
 
-> **الحالة الفعلية (2026-11-16):** Phase 1 (الباك إند) و Phase 2 و Phase 3 و Phase 4 (البحث الصوتي، باك + فرونت) وتصدير السلة PDF من Phase 5 خلصوا. الفرونت خلص كمان: صفحات القراءة، والإعدادات، والختمة، والـ bookmark، والمشاركة كصورة (11.15). و Phase 6 (لوحة الأدمن، 11.17) خلصت. الباقي: Phase 7 (الحديث)، و Phase 8 (الإنتاج). من Phase 0 اتعمل الـ restore و`db pull` وإصلاح الـ mojibake وفحص الكلمات، لكن كتب التفسير 2/3/4 لسه ما اتأكدتش. التفاصيل في **قسم 11**.
+> **الحالة الفعلية (2026-11-18):** Phase 1 (الباك إند) و Phase 2 و Phase 3 و Phase 4 (البحث الصوتي، باك + فرونت) وتصدير السلة PDF من Phase 5 خلصوا. الفرونت خلص كمان: صفحات القراءة، والإعدادات، والختمة، والـ bookmark، والمشاركة كصورة (11.15). و Phase 6 (لوحة الأدمن، 11.17) خلصت. اتضاف **برّا الـ roadmap**: التلاوة الصوتية (11.18، 11.19)، و**الأذكار** + التذكير (11.20)، وشكل التنقل الجديد (11.21). الباقي: Phase 7 (الحديث)، و Phase 8 (الإنتاج). من Phase 0 اتعمل الـ restore و`db pull` وإصلاح الـ mojibake وفحص الكلمات، لكن كتب التفسير 2/3/4 لسه ما اتأكدتش. التفاصيل في **قسم 11**، والمناطق الحساسة قبل أي تعديل في **11.23**.
 
 | المرحلة | المحتوى | معيار النجاح |
 |---|---|---|
@@ -446,7 +450,7 @@ interface SearchableDoc { type: 'ayah' | 'hadith'; id: number; displayText: stri
 - اعتبر مدخلات البحث غير موثوقة: حد أقصى للطول (200 حرف) وعدد الكلمات (20)، لأن الـ fuzzy تكلفته بتزيد.
 ---
 
-## 11. حالة التنفيذ — Backend (Steps 1–8) · آخر تحديث 2026-11-12
+## 11. حالة التنفيذ · آخر مراجعة شاملة مع الكود 2026-11-18
 
 > القسم ده بيوصف **اللي اتبنى فعلاً**. لو في تعارض بينه وبين خطة الأقسام اللي فوق، ده هو الواقع الحالي للكود.
 
@@ -464,21 +468,41 @@ interface SearchableDoc { type: 'ayah' | 'hadith'; id: number; displayText: stri
 
 **الاختبارات:** backend 331 test (unit + e2e، Prisma mocked)، text-utils 65، واختبارات DB اختيارية read-only (backend 9، text-utils 5). Coverage: 100% lines، ~96% branches.
 
-### 11.2 هيكلة الكود الفعلية
+### 11.2 هيكلة الكود الفعلية (اتراجعت مع الكود 2026-11-18)
 ```
 quran_app/
-├── apps/backend/src/
-│   ├── bootstrap/        setup-app.ts (كل الـ Express middleware، مشترك مع الـ e2e)، cors.ts
-│   ├── common/           filters/ (AllExceptionsFilter)، http/ (request id، logger، url length)،
-│   │                     throttling/ (@RateLimit + AppThrottlerGuard)، validation/، pagination/
-│   ├── config/           env.validation.ts (Joi)، origins، trust-proxy، duration
-│   ├── prisma/           PrismaService (global)
-│   ├── health/           GET /health
-│   ├── quran/            ayah.select.ts + suras/ + topics/ + tafsirs/
-│   └── admin/            admin.module.ts + auth/
-├── apps/frontend/        (فاضي لسه)
-├── packages/text-utils/  normalize() — المصدر الوحيد (الباك والفرونت يستوردوا من @quran/text-utils)
-└── scripts/              verify-db.ts، seed-admin.ts
+├── apps/backend/
+│   ├── adhkar.json             مصدر الأذكار (بيتقري بس من scripts/import-adhkar.ts، مش من الـ API)
+│   ├── audio-adhkar/           ملفات MP3 للأذكار (~185MB، بتتخدم من GET /adhkar/audio/:file)
+│   ├── prisma/schema.prisma    db pull + models يدوي للصوت والأذكار (ممنوع migrate/db push)
+│   ├── prisma/sql/NNN_*.sql    migrations إضافية بس (001/002 صوت، 003 أذكار)
+│   └── src/
+│       ├── bootstrap/          setup-app.ts (كل الـ Express middleware، مشترك مع الـ e2e)، cors.ts
+│       ├── common/             filters/ (AllExceptionsFilter)، http/ (request id، logger، url length)،
+│       │                       throttling/ (@RateLimit + AppThrottlerGuard)، validation/، pagination/
+│       ├── config/             env.validation.ts (Joi)، origins، trust-proxy، duration
+│       ├── prisma/             PrismaService (global)
+│       ├── health/             GET /health
+│       ├── quran/              ayah.select.ts + suras/ + topics/ + tafsirs/ (tafsir.constants.ts) + ayahs/
+│       ├── search/             المحرك in-memory: index/ text/ query/ ranking/ cache/ golden/ + admin-search.controller
+│       ├── export/             POST /export/pdf (puppeteer-core) + assets/fonts
+│       ├── quran-audio/        التلاوة (AlQuran Cloud): عام + أدمن + sync (11.18، 11.19)
+│       ├── adhkar/             الأذكار: controller + service (snapshot في الرام) + constants (التذكير) (11.20)
+│       └── admin/              auth/ (JWT cookie + guard عام على /admin/*) + content/ (CRUD المواضيع…)
+├── apps/frontend/src/
+│   ├── app/                    الصفحات (App Router): / ، surah، topics، search، cart، khatma، adhkar، admin
+│   ├── components/             AppChrome (TopBar/BottomNav/MainFrame/PageHeader)، MobileMenu، Providers،
+│   │                           AyahList/AyahCard، audio/، adhkar/، admin/، Tafsir*، ShareAsImageModal…
+│   ├── store/                  zustand: settings، bookmark، khatma، cart، ui، audio، adhkar، adhkarAudio
+│   └── lib/                    api.ts (client)، serverApi.ts (server components)، audioApi، adhkarApi، adminApi،
+│                               localStore.ts (المكان الوحيد اللي بيلمس localStorage)، shapes.ts (parsers)،
+│                               khatma، adhkar، adhkarNotify، speech، highlight، relatedTopics، tafsirFormat…
+├── apps/frontend/public/       fonts/ (Amiri Quran، OFL) + adhkar-sw.js (service worker للإشعارات بس)
+├── packages/text-utils/        normalize() — المصدر الوحيد (الباك والفرونت يستوردوا من @quran/text-utils)
+├── scripts/                    verify-db، seed-admin، create-test-db، apply-audio-migration (كل الـ migrations)،
+│                               import-adhkar — كلها `.ts` بتشتغل بـ Node (type stripping) من الـ root
+├── postman/                    collection + environment (11.5)
+└── frontend design/            مرجع التصميم (11.16)
 ```
 
 ### 11.3 الـ API الفعلي
@@ -489,8 +513,14 @@ quran_app/
 | GET | `/suras/:number?page=&limit=` | `number` من 1 لـ 114 وإلا 400 → `{ sura, ayahs, pagination }` |
 | GET | `/topics?tree=true\|false` | `is_banned=0` فقط، و**أي موضوع تحت أب محظور بيستخبى كمان**. شكل العنصر: `{ id, parentId, title, description }` (+`children` في الشجرة) |
 | GET | `/topics/:id?page=&limit=` | 404 واحد للمحظور والمش موجود → `{ topic, ayahs, pagination }` بترتيب المصحف |
-| GET | `/tafsir-books` | بيخبي ids `0, 2, 3, 4` (`HIDDEN_TAFSIR_BOOK_IDS`) → حالياً كتاب 1 بس |
-| GET | `/tafsirs?ayah_id=&book_ids=1,5` | **المكان الوحيد** اللي بيقرا `tafsirs.content`. 404 لو الآية مش موجودة. الصفوف اللي `content` فيها NULL بتتشال |
+| GET | `/tafsir-books` | بيخبي ids `0, 2, 3, 4` (`HIDDEN_TAFSIR_BOOK_IDS` في `quran/tafsirs/tafsir.constants.ts`، ونفس الثابت بيستخدمه التصدير ولوحة الأدمن) → حالياً كتاب 1 بس |
+| GET | `/tafsirs?ayah_id=&book_ids=1,5` | المكان العام اللي بيقرا `tafsirs.content` (غيره: التصدير وقراءة الأدمن). 404 لو الآية مش موجودة. الصفوف اللي `content` فيها NULL بتتشال |
+| GET | `/tafsirs/available?ayah_ids=` | أنهي آيات من دول ليها تفسير في كتاب ظاهر (من غير ما يقرا `content`). صفحة البحث بتستخدمه عشان تعرض زرار «تفسير» بس فين ما فيه تفسير (طلب واحد للصفحة) |
+| GET | `/ayahs?ids=` | لحد 100 id، بترتيب الطلب، + `suraName` (السلة). تفاصيل 11.14 |
+| POST | `/export/pdf` | PDF السلة (11.13، 11.14) |
+| GET | `/quran-audio/*` و `/admin/quran-audio/*` | التلاوة (11.18، 11.19) |
+| GET | `/adhkar/*` | الأذكار + ملفات الصوت (11.20) |
+| * | `/admin/stats`، `/admin/suras`، `/admin/topics`، `/admin/ayahs`، `/admin/tafsir-books`، `/admin/tafsirs` | لوحة الأدمن (11.17) |
 | POST | `/admin/auth/login` | `{ email, password }` → 200 `{ admin }` + cookie. 401 موحّد. 429 + `Retry-After` |
 | POST | `/admin/auth/logout` | 204، بيمسح الـ cookie |
 | GET | `/admin/auth/me` | `{ id, email, name, createdAt, lastLoginAt }` أو 401 |
@@ -521,8 +551,17 @@ quran_app/
 | `THROTTLE_{DEFAULT,AUTH,SEARCH}_{LIMIT,TTL_SECONDS}` | | 100/60، 5/60، 30/60 | لكل IP |
 | `THROTTLE_EXPORT_LIMIT` / `THROTTLE_EXPORT_TTL_SECONDS` | | 10 / 60 | لـ `POST /export/pdf` |
 | `PDF_BROWSER_PATH` | | (auto) | Chrome/Chromium/Edge لـ puppeteer-core. لو فاضي بيدوّر في المسارات المعتادة |
+| `ADHKAR_AUDIO_DIR` | | `apps/backend/audio-adhkar` | فولدر ملفات MP3 للأذكار (الـ API و `db:import:adhkar` الاتنين بيقروه). الافتراضي في الـ API محسوب من `__dirname` فبيشتغل من `src/` و `dist/` |
 | `ADMIN_EMAIL` / `ADMIN_INITIAL_PASSWORD` / `ADMIN_NAME` | | `admin@quran.com` / — / `Admin` | لـ `npm run seed:admin` **بس**، والـ API مش بيقراهم. `ADMIN_PASSWORD` القديم **مبقاش بيتقري** (11.17) |
 | `TEST_DATABASE_NAME` | | `<db>_test` | لـ `db:test:create` و `test:write-db` بس، ولازم ينتهي بـ `_test` |
+| `ADHKAR_JSON` | | `apps/backend/adhkar.json` | لـ `db:import:adhkar` بس (مصدر بديل) |
+
+**الفرونت (`apps/frontend/.env.local`، والقالب `.env.example`):**
+| المتغير | ملاحظة |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | عنوان الـ API للمتصفح (بيتحط وقت الـ build). الافتراضي `http://localhost:3001`. لازم يكون في `WEB_ORIGIN` بتاع الباك (CORS). روابط صوت الأذكار بتتبني منه (`adhkarAudioSrc`) |
+| `API_URL` | عنوان الـ API للـ server components (`lib/serverApi.ts`)، ولو مش موجود بياخد `NEXT_PUBLIC_API_URL` |
+| `NEXT_DIST_DIR` | فولدر build بديل (الـ e2e بيستخدم `.next-e2e`) |
 
 ### 11.5 الأوامر (من جذر `quran_app/`)
 | الأمر | بيعمل إيه |
@@ -531,7 +570,10 @@ quran_app/
 | `npm run test:db -w @quran/backend` و `-w @quran/text-utils` | اختبارات read-only على الداتا بيز الحقيقية |
 | `npm run verify:db` | فحص الداتا بيز (read-only) |
 | `ADMIN_INITIAL_PASSWORD='…' npm run seed:admin` | (11.17) بيعمل `admin@quran.com` / `Admin`. INSERT بس: لو الإيميل موجود مش بيغيّر حاجة (ولا الباسورد) |
-| `npm run db:test:create` | (11.17) بيعمل/يعيد `<db>_test` نسخة معزولة من الداتا بيز (قراءة بس من الأصل، و`admins` فاضي) |
+| `npm run db:test:create` | (11.17) بيعمل/يعيد `<db>_test` نسخة معزولة من الداتا بيز (قراءة بس من الأصل، و`admins` فاضي). ⚠️ بينسخ جداول المحتوى الأصلية بس (`TABLES` في `scripts/create-test-db.ts`)، **مش** جداول الصوت ولا الأذكار: طبّق `db:migrate:*` و`db:import:adhkar` عليها لو محتاجهم |
+| `npm run db:migrate:audio` / `npm run db:migrate:adhkar` | **نفس السكربت** (`scripts/apply-audio-migration.ts`): بيطبق كل `apps/backend/prisma/sql/NNN_*.sql` بالترتيب. بيرفض أي statement مش `CREATE TABLE IF NOT EXISTS` لجدول من الـ allowlist (`ALLOWED_TABLES`). تشغيله تاني = مفيش تغيير |
+| `npm run db:import:adhkar` | (11.20) بيملا `adhkar_categories`/`adhkar_items` من `adhkar.json`. آمن يتعاد: لو مطابق مفيش كتابة |
+| `npx prisma generate` (في `apps/backend`) | بعد أي تعديل في `schema.prisma`. على Windows بيفشل في استبدال الـ DLL لو الباك شغال: وقّف السيرفر الأول |
 | `npm run test:write-db -w @quran/backend` | (11.17) اختبارات الكتابة للأدمن على `<db>_test` بس (بيرفض أي داتا بيز تانية) |
 | `cd apps/backend && npm run start:dev` | تشغيل السيرفر محلياً |
 | `npm test -w @quran/frontend` | Vitest (منطق الفرونت + الـ stores) |
@@ -573,11 +615,18 @@ quran_app/
    - Prisma 6.19، لأن 7.x ESM-first ومحتاج driver adapter.
    - `@nestjs/jwt` 11.0.2، لأن 12.x ESM-only ومش شغال مع Jest.
    - `bcryptjs` بدل `bcrypt`، لأن npm 11 بيمنع الـ install scripts بتاعة النسخ native.
-8. **الداتا بيز:** مفيش أي migration ولا أي UPDATE/DELETE على جداول المحتوى. **migration v4 (4.1) والتنظيف (8.5) ما اتنفذوش.** الكتابة الوحيدة في الكود: `admins.last_login_at`، و`seed:admin` (INSERT).
+8. **الداتا بيز:** مفيش أي UPDATE/DELETE على **نص** القرآن أو التفاسير، ومفيش ALTER على أي جدول قديم. **migration v4 (4.1) والتنظيف (8.5) ما اتنفذوش.**
+   **كل الكتابة الموجودة في الكود (محدّث 2026-11-18):**
+   - `admins.last_login_at` (الـ login)، و`seed:admin` (INSERT بس).
+   - لوحة الأدمن (11.17): `categories` و`category_ayah` (المواضيع والربط)، و`suras.name_ar/name_en`، و`tafsir_books.name/author`.
+   - التلاوة (11.18، 11.19): `audio_reciters`، و`ayah_audio`، و`audio_sync_jobs`، و`audio_surah_reciters` (جداول جديدة).
+   - الأذكار (11.20): `adhkar_categories` و`adhkar_items` (جداول جديدة) **من السكربت بس**، والـ API قراءة بس.
+   - الـ migrations الإضافية (`prisma/sql/NNN_*.sql`): `CREATE TABLE IF NOT EXISTS` بس.
 
-### 11.7 اللي لسه ما اتعملش
-- **محرك البحث:** Phase 2 و Phase 3 وبنود 5.11 خلصوا (11.9 → 11.11). الباك إند الصوتي + المرحلة 5 `partial` خلصوا في 11.12. الباقي: FULLTEXT fallback، والعبارات الشائعة في suggest، والفرونت الصوتي.
-- `/export/pdf`، و CRUD الأدمن، والفرونت كله، والحديث.
+### 11.7 اللي لسه ما اتعملش (محدّث 2026-11-18)
+- **محرك البحث:** Phase 2 و Phase 3 وبنود 5.11 خلصوا (11.9 → 11.11)، والصوتي باك + فرونت (11.12، 11.13). الباقي: FULLTEXT fallback، والعبارات الشائعة في suggest، و`/search/voice` (Whisper).
+- ~~`/export/pdf`، و CRUD الأدمن، والفرونت كله~~ خلصوا (11.13، 11.15، 11.17). **الحديث** (Phase 7) لسه.
+- **الأذكار:** مفيش CRUD أدمن ليها (التعديل = تعديل `adhkar.json` + `db:import:adhkar`)، ومفيش إشعارات والتطبيق مقفول (محتاج Web Push، 11.20).
 - **migration v4 (`text_search` و`text_phonetic` و`search_vocab`):** ملء الأعمدة دي محتاج UPDATE على `ayahs`، وده ممنوع حالياً. المحرك in-memory مش محتاجها، فالقرار مؤجل.
 - **تنظيف 8.5** (المواضيع التجريبية والأوصاف): محتاج DELETE/UPDATE، يعني إذن صريح.
 - **تشغيلي:**
@@ -594,6 +643,7 @@ quran_app/
   - أسئلة قسم 9.
 
 ### 11.8 الخطوة الجاية المقترحة: Phase 2 — نواة محرك البحث
+> ✅ **تاريخي:** Phase 2 خلصت (11.9، 11.10). القسم ده محفوظ كسجل للخطة بس.
 1. **الـ golden set الأول (5.12):** `golden-queries.json` بـ ~50 حالة نضيفة (مراجع، عبارات، همزات، stopwords) + سكربت يحسب Recall@1/Recall@5/MRR.
 2. **`CorpusLoader` + الفهرس (5.4):**
    - تحميل `ayahs` مرة واحدة عند الإقلاع (من غير `tafsirs.content`).
@@ -769,7 +819,7 @@ quran_app/
 - `lint` = `tsc --noEmit` (أمر `next lint` اتشال من Next 15.5).
 - **`/search`:**
   - **`SearchBox`:** اقتراحات من `/search/suggest` بـ debounce 200ms، وتشتغل بالكيبورد.
-  - **`VoiceSearchButton`:** Web Speech API (`ar-SA`/`ar-EG`، و`interimResults`، و`maxAlternatives=5`). بيبعت `type=voice` + `alts`. النص اللي اتسمع بيظهر وقابل للتعديل، والبدائل أزرار. لو اتعدّل، بيتبحث كـ `text`.
+  - **`VoiceSearchButton`:** Web Speech API (`interimResults`، و`maxAlternatives=5`). ⚠️ **محدّث (2026-11-18):** اللغة ثابتة `ar-EG` (`SPEECH_LANG` في `lib/speech.ts`) ومفيش قائمة اختيار لهجة، ومفتاح `quran_speech_lang` اتشال. بيبعت `type=voice` + `alts`. النص اللي اتسمع بيظهر وقابل للتعديل، والبدائل أزرار. لو اتعدّل، بيتبحث كـ `text`.
   - **عرض النتايج:** شريط "تم البحث عن X بدلاً من Y"، و"هل تقصد"، ورسالة المرجع الغلط، و503/429. لو أول نتيجة `low`، بيظهر أفضل 3 + "عرض كل النتايج" (5.7). الـ highlights من `highlights` على `textUthmani`.
   - الحالة في الـ URL (`q`، `page`، `type`).
 - **السلة (spec 4.1):**
@@ -828,7 +878,7 @@ quran_app/
 **الحالة:** اتنفذ واتجرب. مفيش أي تغيير في منطق الباك إند، ومفيش كتابة على الداتا بيز. التغييرات الوحيدة في `apps/backend`: ترقية أمان `puppeteer-core` 24→25، و e2e tests للتحقق من `/ayahs`.
 
 **قرارات اتحسمت (2026-11-16):**
-1. **تقدّم الختمة بزرار «تمت القراءة» بس.** التمرير عمره ما بيتحسب.
+1. ~~**تقدّم الختمة بزرار «تمت القراءة» بس.** التمرير عمره ما بيتحسب.~~ ⚠️ **اتغير بعد كده (الكود الحالي):** في صفحة السورة، التمرير الحقيقي لتحت بيعلّم الآيات مقروءة تلقائياً (`components/useAutoKhatmaReading.ts`، من `AyahList` لما `trackBookmark`): الآية بتتحسب لما حافتها السفلية تعدّي خط 35% من فوق الشاشة، وبالتتابع من `lastAyahId + 1` بس، وفتح الصفحة أو الـ scroll restore أو قفزة `#ayah` عمرهم ما بيعلّموا حاجة. زرار «تمت القراءة» (`KhatmaButton`) لسه موجود كطريقة يدوية.
 2. **اليوم بيتحسب مكتمل** بس لما هدفه الكامل يتحقق.
 3. **الثيم:** بيتبع الجهاز لحد ما المستخدم يختار.
 4. **عثماني/إملائي:** على صفحات القراءة بس. نتائج البحث بتفضل عثماني.
@@ -864,8 +914,15 @@ quran_app/
 |---|---|
 | `quran_settings` `{fontSize 16–32, theme, script}` | **بيتطبق فوراً** (CSS var `--quran-size` + class `dark` على `<html>`)، وبيتحفظ بعد الـ reload. سكربت في `<head>` بيطبقه قبل أول رسم، فمفيش flash. ⚠️ **تعارض اتحل كده:** شكل الـ spec فيه `theme` دايماً، فمفيش حاجة بتتكتب لحد ما المستخدم يغيّر أي إعداد، والثيم بيتبع الجهاز (وبيتغير معاه لايف). أول ما يتغير أي إعداد، الثيم الحالي بيتحفظ معاه |
 | `quran_bookmark` | آخر آية ظاهرة في صفحة السورة (IntersectionObserver ≥ 60% + debounce 500ms). مفيش كتابة لو نفس الآية. **مستقل تماماً عن الختمة** |
-| `quran_khatma` | `lib/khatma.ts` (pure). `dailyTarget = ceil(6236/days)`. ورد اليوم n = الآيات `(n·t, (n+1)·t]`، وآخر يوم فيه الباقي. «تمت القراءة» على آية بيعلّم كل اللي قبلها، والآية المقروءة **مش ممكن تتعلم تاني** (زرارها بيبقى «✓ مقروءة»، والدالة بترجع نفس الـ object، فمفيش كتابة). اليوم بيدخل `completedDates` مرة واحدة لما `lastAyahId` يوصل لنهاية ورد اليوم، والتعويض محسوب. تنبيه بعد الساعة 8 بالليل، و streak، ومتقدم/متأخر |
+| `quran_khatma` | (في الواجهة اسمها «الورد اليومي»، والمسار `/khatma`). `lib/khatma.ts` (pure). `dailyTarget = ceil(6236/days)`. ورد اليوم n = الآيات `(n·t, (n+1)·t]`، وآخر يوم فيه الباقي. «تمت القراءة» على آية بيعلّم كل اللي قبلها، والآية المقروءة **مش ممكن تتعلم تاني** (زرارها بيبقى «✓ مقروءة»، والدالة بترجع نفس الـ object، فمفيش كتابة). اليوم بيدخل `completedDates` مرة واحدة لما `lastAyahId` يوصل لنهاية ورد اليوم، والتعويض محسوب. تنبيه بعد الساعة 8 بالليل، و streak، ومتقدم/متأخر |
 | `quran_last_route` | بيتسجل مع كل صفحة والتمرير (debounce)، **ما عدا صفحات الخطأ والـ 404** (`data-no-restore`). أول فتح لـ `/` بيرجع للصفحة الأخيرة (spec 4.8). المسار لازم يبقى داخلي (مفيش open redirect) |
+
+**كل مفاتيح localStorage الحالية** (`STORAGE_KEYS` في `lib/localStore.ts`، محدّث 2026-11-18). اللي **مش** من spec §3:
+| المفتاح | مين بيستخدمه |
+|---|---|
+| `quran_cart_no_tafsir` | `useCartStore`: الآيات اللي المستخدم اختار لها «بدون تفسير» صراحةً (برّا `quran_cart` عشان شكله يفضل زي الـ spec) |
+| `quran_audio` / `quran_audio_session` | `useAudioStore` (11.18، 11.19): التفضيلات، وآخر مكان استماع (metadata بس) عشان الاستكمال |
+| `quran_adhkar_favorites` / `_recent` / `_progress` / `_reminders` / `_reminders_fired` | `useAdhkarStore` و`AdhkarReminderScheduler` (11.20) |
 
 **المشاركة كصورة (spec 4.4):**
 - الكارت: عرض 1080px × `pixelRatio` 2 = **PNG بعرض 2160px**، و RTL، و Amiri Quran (بيستنى الخط يتحمّل).
@@ -916,8 +973,7 @@ quran_app/
 **اتطبق:**
 - **ألوان الديزاين:** خلفية داكنة (`--bg #121212`)، و surfaces `#1b1b1b`/`#232323`، و card كحلي للأبرز (`--hero #0c2754`)، و accent أزرق، وزرار أساسي أبيض، و badges خضرا/زرقا، و highlight كهرماني.
 - **الوضع النهاري:** نفس التصميم معكوس (tokens في `globals.css`، و classes جاهزة `ui-card`/`ui-hero`/`ui-chip`/`ui-badge`…).
-- **Top bar:** اسم التطبيق + ترس الإعدادات.
-- **Bottom tab bar:** الرئيسية، والسور، والسلة (بتفتح sheet + عداد)، والبحث، والإعدادات (sheet). المواضيع والختمة من كروت الرئيسية.
+- ~~**Top bar:** اسم التطبيق + ترس الإعدادات.~~ ~~**Bottom tab bar:** الرئيسية، والسور، والسلة، والبحث، والإعدادات.~~ ⚠️ **اتغيروا:** التنقل الحالي في **11.21** (bottom bar = 4 عناصر، والسور/المواضيع/الأذكار/الورد في القائمة الجانبية).
 - **عناوين الصفحات:** «→ العنوان». السهم بيرجع للرئيسية، أو للسور/المواضيع في الصفحات الفرعية.
 - **الرئيسية:** كارت «أكمل القراءة» كحلي، وكارت الختمة، و grid 2×2 أيقونات.
 - **السور/المواضيع:** صفوف بدائرة رقم أو أيقونة folder/file + chevron.
@@ -1101,3 +1157,126 @@ quran_app/
 - **اختيار القارئ:** `surahReciter` اتضاف لـ `quran_audio` (اختياري: التفضيلات القديمة لسه بتتقري). القارئ الفعلي: المحفوظ ← نفس قارئ الآيات لو موجود في قائمة السور (بالـ identifier أو نفس الاسم العربي) ← الافتراضي (`ar.alafasy`). لو قارئ الآيات مالوش تسجيل كامل، بتظهر رسالة. القائمة بتعرض بس القرّاء اللي عندهم ملفات سور، فمفيش URL غلط.
 - **الواجهة:** صفحة السورة فيها كارت فيه «قارئ الآيات» و«قارئ السورة كاملة» + «تشغيل السورة كاملة» (بيبقى إيقاف/متابعة لو السورة دي شغالة). المشغّل فيه badge «السورة كاملة»/«آية بآية»، والسورة، والقارئ، والوقت الحالي/الكلي (h:mm:ss للملفات الطويلة)، و ±10 ثانية، والسورة السابقة/التالية، و«بعد انتهاء السورة: إيقاف / السورة التالية». شيت الإعدادات فيه القائمتين. الأدمن: قسم «قرّاء السورة كاملة» في `/admin/dashboard/audio`.
 - **قيود:** الـ highlight للآية مش بيشتغل في وضع السورة كاملة (مفيش توقيتات للآيات جوه الملف). الـ listing مش documented (بيتقري بحذر). الملفات كبيرة (البقرة 128kbps ≈ 120MB) بس بتتعمل لها streaming (الـ CDN بيدعم `Accept-Ranges`).
+
+### 11.20 الأذكار (حصن المسلم) · 2026-11-18
+**الحالة:** اتنفذت (داتا بيز + باك + فرونت). **مفيش اختبارات اتعملت ولا اتشغلت** (بطلب صريح). الـ migration والـ import اتطبقوا على `local`.
+
+**المصدر:**
+- `apps/backend/adhkar.json`: array من الأقسام `{ id, category, audio, filename, array: [{ id, text, count, audio, filename }] }`. **132 قسم و267 ذكر.** رقم الذكر (`id`) بيبدأ من 1 في كل قسم، فالذكر بيتعرّف بـ `(categoryId, itemNumber)`.
+- قسم 1 اسمه «أذكار الصباح والمساء» (**قسم واحد للاتنين**)، و2 «أذكار النوم»، و3 «أذكار الاستيقاظ من النوم».
+- `apps/backend/audio-adhkar/`: كل الـ 399 مرجع صوت (132 قسم + 267 ذكر) ليهم ملف. فيه ملف زيادة من غير امتداد (`ar_7esn_AlMoslem_by_Doors_053`، نسخة من الـ `.mp3`) ومش مستخدم. الفولدر ~185MB و**مش في `.gitignore`** (قرار git/النشر مفتوح).
+
+**الداتا بيز (إضافة بس، `prisma/sql/003_adhkar.sql`):**
+- `adhkar_categories`: `id` = id المصدر (SMALLINT، مش auto)، `title`، `sort_order` (unique)، `audio_file`.
+- `adhkar_items`: `category_id` (FK → categories، cascade)، `item_number`، `sort_order`، `text` (TEXT)، `repeat_count` (CHECK ≥ 1)، `audio_file`. unique `(category_id, item_number)` و`(category_id, sort_order)`.
+- **اسم الملف بس** بيتخزن (`/audio/75.mp3` → `75.mp3`)، ومفيش MP3 في MySQL. مفيش جدول صوت منفصل (كل قسم/ذكر ليه تسجيل واحد).
+- Prisma: `AdhkarCategory` و`AdhkarItem` (يدوي في `schema.prisma`).
+
+**الـ import (`scripts/import-adhkar.ts`، `npm run db:import:adhkar`):**
+- validation كامل الأول (ids، العنوان، النص، `count`، تكرار الـ ids). أي غلط = **مفيش كتابة خالص** ورسالة بكل الأخطاء.
+- النص والعنوان بيتخزنوا byte-for-byte (من غير trim ولا normalize).
+- لو الملف الصوتي مش موجود أو الاسم مش صالح → `audio_file = NULL` + warning (الـ import بيكمل).
+- **idempotent:** لو الداتا بيز مطابقة → «already up to date: nothing written». غير كده: استبدال الجدولين **بس** في transaction واحدة، وبعدها read-back ومقارنة بالمصدر، ولو فيه فرق → rollback.
+- ⚠️ الاستبدال بيغيّر `adhkar_items.id` (auto). عشان كده **مفيش أي حاجة بتعتمد على `adhkar_items.id`**: الـ API والفرونت والمفضلة بيستخدموا `(categoryId, itemNumber)` بس. حافظ على كده.
+- اتشغّل 2026-11-18: «imported 132 categories and 267 items … verified byte-for-byte»، والتشغيل التاني: «already up to date».
+
+**الباك إند (`apps/backend/src/adhkar/`):**
+- `AdhkarService`: snapshot في الرام لكل الأذكار، بيتجدد كل 5 دقايق (`ADHKAR_CACHE_TTL_MS`). لو التجديد فشل بيفضل يخدم القديم. لو الجداول مش موجودة → 503 برسالة فيها أوامر الـ migration/import.
+- **التعديل بالـ import مش بيظهر فوراً:** لحد 5 دقايق، أو restart.
+- الـ endpoints (عامة، قراءة بس، throttler `default`، مفيش pagination):
+
+| Method | المسار | الرد |
+|---|---|---|
+| GET | `/adhkar` | `{ data: [category + items] }` كله بالترتيب |
+| GET | `/adhkar/categories` | `{ data: [{ id, title, order, itemCount, audioUrl }] }` |
+| GET | `/adhkar/categories/:id` | `{ category, items: [{ categoryId, number, order, text, repeatCount, audioUrl }] }`، 404 |
+| GET | `/adhkar/categories/:id/items/:itemNumber` | `{ category, item }`، 404 |
+| GET | `/adhkar/search?q=` | `q` من 1 لـ 100 حرف. `normalize()` من `@quran/text-utils`، وكل كلمة لازم تكون في النص أو في عنوان القسم. `{ query, categories, items (≤ 50), total, truncated }` |
+| GET | `/adhkar/reminders` | `{ data: [{ key, label, categoryId, categoryTitle, defaultTime, message }] }`. الـ slot بيرجع بس لو القسم موجود **بنفس الـ id والعنوان** |
+| GET | `/adhkar/audio/:file` | الملف (`audio/mpeg`، Range/ETag، `Cache-Control` 30 يوم immutable). الاسم regex صارم + لازم يكون مرجع في الداتا بيز **وموجود على الديسك** (whitelist)، وإلا 404 |
+
+- `audioUrl` بيرجع **مسار نسبي** (`/adhkar/audio/75.mp3`)، والفرونت بيضيف `NEXT_PUBLIC_API_URL` (`adhkarAudioSrc`، بيقبل المسارات دي بس).
+- ⚠️ helmet بيحط `Cross-Origin-Resource-Policy: same-origin` على كل حاجة. الـ audio route بس بيغيّره لـ `cross-origin`، وإلا الفرونت (origin تاني) مش هيقدر يشغّل الصوت.
+- مواعيد التذكير وتوزيعها على الأقسام في `adhkar.constants.ts` (`REMINDER_DEFINITIONS`): صباح 06:30 → 1، مساء 17:30 → 1، نوم 22:30 → 2، استيقاظ 05:30 → 3. باقي الأقسام مرتبطة بأحداث (صلاة، سفر…) مش بوقت، فمالهاش تذكير.
+
+**الفرونت:**
+- **الصفحات:**
+  - `/adhkar` (`AdhkarHomeClient`): ترحيب، واقتراح حسب الساعة (4–12 صباح، 15–21 مساء، 21–2 نوم) أو «حان وقت …» لو تذكير مفعّل في وقته، والمفضلة، والتذكير، وبحث (debounce 250ms على `/adhkar/search`)، وآخر ما فتحت، والأقسام بترتيب المصدر.
+  - `/adhkar/[id]` (`AdhkarCategoryClient` + `DhikrCard`): النص كامل (`quran-text`، RTL)، وعدد التكرار، وزرار عدّاد بيبيّن المتبقي، و«تم» عند الاكتمال، وإعادة للذكر وللقسم كله، وتقدّم القسم، وصوت للذكر وللقسم كامل، ومفضلة. روابط `#dhikr-N` بتنزل للذكر.
+  - `/adhkar/favorites`: بيجيب `GET /adhkar` مرة واحدة لو فيه مفضلة.
+  - `/adhkar/reminders` (`RemindersClient`): تشغيل/وقت لكل slot، وحالة الإذن، و«جرّب إشعار»، وشرح الحدود للمستخدم.
+- **الـ stores:**
+  - `useAdhkarStore`: المفضلة (`"categoryId:itemNumber"`، لحد 300)، وآخر 5 أقسام، والعدّادات، وإعدادات التذكير. بيتعمل له hydrate في `Providers`.
+  - العدّادات لكل قسم ليها `period`: اليوم، و**قسم 1 بيتقسم صباح/مساء** (`EVENING_FROM_HOUR = 15`)، والـ period القديم بيتصفّر لوحده.
+  - كل الـ parsers في `lib/adhkar.ts`.
+- **الصوت (`useAdhkarAudioStore`):** منفصل تماماً عن مشغّل القرآن: عنصر `<audio>` خاص، `preload='none'`، تسجيل واحد في نفس الوقت، ومفيش حاجة بتتحفظ. **مش بيوقف تلاوة القرآن** (مقصود: ممنوع يلمس `useAudioStore`). بيقف لما تسيب صفحة القسم أو المفضلة.
+
+**التذكير والإشعارات:**
+- `components/adhkar/AdhkarReminderScheduler.tsx` في `app/layout.tsx`. مش بيعمل أي طلب لحد ما تذكير يتفعّل، ومش بيشتغل في `/admin`. بيـcheck كل 30 ثانية ولما التبويب يبقى ظاهر.
+- **الإرسال:** لو الـ slot مفعّل وفي نافذته (من الوقت لحد ساعتين بعده، `REMINDER_GRACE_MINUTES`) وما اتبعتش النهارده → بيكتب تاريخ النهارده في `quran_adhkar_reminders_fired` **قبل** الإرسال، تحت Web Lock (`navigator.locks`) بين التبويبات، والـ tag `adhkar-<key>-<date>`. يعني مرة واحدة في اليوم.
+- **الإذن:** بيتطلب بس من ضغطة المستخدم (تفعيل تذكير). من غير `granted` مفيش إشعار، بس صفحة الأذكار بتعرض «حان وقت …».
+- `lib/adhkarNotify.ts` + `public/adhkar-sw.js`: service worker (scope `/`) **للإشعارات بس**، ومفيش fetch handler. الضغط على الإشعار بيفتح `/adhkar/<id>` (أو يعمل focus لتبويب مفتوح). الـ fallback: `new Notification` من الصفحة.
+- ⚠️ **حدود معروفة:** مفيش إشعار والتطبيق مقفول تماماً (محتاج Web Push + VAPID + scheduler في الباك، وده مش موجود). الإعدادات على الجهاز بس. الوقت = ساعة الجهاز المحلية.
+
+### 11.21 التنقل والـ layout الحالي · 2026-11-18
+- **الـ Top bar** (`TopBar` في `components/AppChrome.tsx`):
+  - sticky، والارتفاع `--topbar-h` (3.5rem) + border 1px.
+  - يمين: اللوجو (`/icon.svg`، مرة واحدة بس) + «القرآن الكريم» → `/`.
+  - شمال: `MobileMenu` + `SettingsButton` (ترس بيفتح شيت الإعدادات: حجم الخط، والليلي، وعثماني/إملائي، والقرّاء).
+- **الـ Bottom nav** (`BottomNav`): **4 عناصر بالظبط** بعرض متساوي (`flex-1 basis-0`):
+  - الرئيسية (`/`).
+  - السلة (زرار بيفتح شيت السلة + عدّاد).
+  - البحث (`/search`).
+  - التشغيل (toggle لـ `useAudioStore.playerOpen`، ونقطة لو فيه استماع محفوظ).
+  - الإعدادات **مش** فيه (موجودة في الـ top bar). المؤشر النشط: لون `--accent` + `aria-current`.
+- **القائمة الجانبية** (`components/MobileMenu.tsx`):
+  - زرار hamburger بـ 3 خطوط بتتحول لـ X (CSS transitions)، و`aria-expanded`/`aria-controls`.
+  - الـ sidebar بيدخل من اليمين (start في RTL) فوق overlay. فيه 4 عناصر بس: السور (`/surah`)، والمواضيع (`/topics`)، والأذكار (`/adhkar`)، والورد اليومي (`/khatma`)، والنشط متعلّم.
+  - بيتقفل بالـ overlay، و Escape، والضغط على لينك، وأي تغيير مسار. فيه focus trap ورجوع الـ focus للزرار، وقفل scroll الصفحة، و`inert` وهو مقفول.
+  - ⚠️ الـ overlay والـ panel متعملهم **portal لـ `<body>`** (الـ `backdrop-blur` بتاع الـ header بيحبس عناصر `fixed` جواه)، وبيبدأوا **تحت** الـ header (`top` بيتقاس وقت الفتح) عشان الـ X يفضل ظاهر.
+  - مفيش لوجو جوه الـ sidebar (كان متكرر واتشال).
+- **`MainFrame`:**
+  - `pt-4`، و`padding-bottom: var(--frame-pb)` = `5rem + safe-area-bottom + --player-h`.
+  - `--player-h` بيضبطه `AudioPlayerBar`. `ScrollToTop` وزرار في `AyahList` بيستخدموه كمان.
+  - `html { scrollbar-gutter: stable }` عشان الـ layout ما يتزحزحش لما القائمة تقفل الـ scroll.
+- **الرئيسية (`app/page.tsx` + `HomeCards`):**
+  - المحتوى: البسملة (حجم ثابت `text-2xl`، **مش** بإعداد حجم الخط)، و«أكمل القراءة» (لو فيه bookmark)، وكارت «الورد اليومى»، و5 بلاطات: قراءة القرآن، والمواضيع، والبحث، والختمة، والأذكار (الأخيرة بعرض الصف).
+  - الـ `section` ليه `min-height: calc(100svh - var(--topbar-h) - 1px - 1rem - var(--frame-pb))`، وشبكة البلاطات `flex-1 auto-rows-fr` (حد أقصى 28rem، والبلاطة ≥ 56px)، فالصفحة بتملا الشاشة من غير scroll طالما المحتوى داخل.
+  - ⚠️ لو غيّرت ارتفاع الـ header أو `pt-4` أو `--frame-pb`، **عدّل المعادلة دي**.
+- الـ chrome كله (TopBar، والـ BottomNav، والمشغّل) **مش بيظهر** على `/admin/*` (`isAdminPath`).
+- ⚠️ ما اتعملش اختبار في متصفح للتغييرات دي، ولا اتحدثت الـ browser journeys (`e2e/`) على التنقل الجديد.
+
+### 11.22 ميزات فرونت موجودة في الكود ومكانتش موثقة · مراجعة 2026-11-18
+- **البحث (`app/search/SearchClient.tsx`):**
+  - كل نتيجة (`AyahCard`) فيها زرار استماع (`AyahPlayButton`).
+  - زرار «تفسير» بيظهر بس للآيات اللي `GET /tafsirs/available` رجّعها (طلب واحد للصفحة)، وبيفتح `TafsirModal` (popup، و Esc/backdrop بيقفلوه).
+- **`AyahList`:**
+  - شكلين: `vertical` (كروت) و`mushaf` (نص متصل والضغط على الآية بيعرض أوامرها). الاختيار في `useUiStore.ayahView` (مش محفوظ).
+  - صفحة السورة بتمرر `showViewToggle={false}`.
+  - مع `trackBookmark`: الـ bookmark + القراءة التلقائية للختمة (11.15 قرار 1).
+- **صفحة السورة:** `SuraAudioMenu` (تشغيل السورة كاملة / آية تلو الأخرى + قائمتين القرّاء).
+- **`/topics/[id]`:** «مواضيع ذات صلة» من `lib/relatedTopics.ts`. دالة pure على شجرة `/topics?tree=true`: أب +50، ابن +40، أخ +30، كلمة مشتركة +20، تشابه العنوان لحد +25.
+- **السلة** (`components/useCartTafsir.ts`، مشتركة بين الـ drawer و`/cart`):
+  - التفسير الافتراضي = أول كتاب في القائمة، لكل آية ما اتحددش لها تفسير وما اتختارلهاش «بدون تفسير» صراحةً (`quran_cart_no_tafsir`).
+  - checkbox «تضمين التفسير» (`useUiStore.cartTafsirOff`، مش محفوظ) بيأثر على الـ PDF والصورة.
+- **المشاركة كصورة (`ShareAsImageModal`):** تحميل (الآية بس أو الآية + التفسير) أو مشاركة صورة الآية.
+- **عرض التفسير:** `lib/tafsirFormat.ts` بيقسّم النص لفقرات **للعرض بس**، ومن غير ما يغيّر أو يشيل أي حرف.
+- **استكمال الاستماع:** `quran_audio_session` بيحفظ آخر مكان (metadata بس)، والاستكمال بيعمل seek قبل التشغيل.
+- **الأدمن:** `AyahSuggestField` بيقترح آيات وإنت بتكتب عربي (عن طريق `GET /search`)، وبيحط المرجع `2:255` في خانة ربط الآيات.
+
+### 11.23 مناطق حساسة: اقرأ قبل ما تعدّل
+1. **نص القرآن والتفاسير والأذكار:** ممنوع أي تعديل أو trim أو normalize على النص المخزن أو المعروض. التطبيع للبحث بس. الأدمن عمداً مالوش endpoint بيكتب في `ayahs`/`tafsirs`.
+2. **`normalize()` (`packages/text-utils`):** مستخدمة في الفهرسة والاستعلام وبحث الأذكار وتطبيع الأدمن. أي تغيير بيغيّر نتايج البحث، ومحتاج إعادة بناء الفهرس وتشغيل الـ golden set (`npm run search:eval -w @quran/backend`). القرار (11.7): ما تتغيرش.
+3. **الداتا بيز:**
+   - ممنوع `prisma migrate` و`db push`.
+   - التغييرات = ملف `prisma/sql/NNN_*.sql` جديد (`CREATE TABLE IF NOT EXISTS` بس) + إضافته لـ `ALLOWED_TABLES` في `scripts/apply-audio-migration.ts` + model يدوي في `schema.prisma` + `prisma generate`.
+   - أي UPDATE/DELETE على جداول المحتوى محتاج إذن صريح.
+4. **`HIDDEN_TAFSIR_BOOK_IDS`:** بيأثر على الـ API العام والتصدير والأدمن مع بعض.
+5. **مشغّل القرآن (`store/useAudioStore.ts`):** عنصر صوت واحد على مستوى الـ module، ونظام tokens ضد السباقات، وحفظ الجلسة. مشغّل الأذكار لازم يفضل منفصل عنه (11.20).
+6. **localStorage:** كله من `lib/localStore.ts`، وكل قيمة بتتقري من خلال parser (`lib/shapes.ts`، `lib/adhkar.ts`). أشكال مفاتيح spec §3 (`quran_cart` وغيره) ممنوع تتغير.
+7. **حماية الأدمن:** `AdminAuthGuard` عام على أي controller تحت `admin`. أي route أدمن جديد لازم يتحط تحت `@Controller('admin/...')`، وأي route عام لازم يكون برّاه.
+8. **CORS / CORP:** الفرونت والـ API origins مختلفة. أي ملف ميديا جديد من الباك محتاج `Cross-Origin-Resource-Policy` مناسب (زي `/adhkar/audio`).
+9. **ارتفاعات الـ layout:** `--topbar-h` و`--frame-pb` و`--player-h` مرتبطين بمعادلة الرئيسية (11.21).
+10. **الـ in-memory state** (فهرس البحث، وsnapshot الأذكار، والـ lockout، والـ throttler، وjobs الصوت): instance واحد بس. أكتر من instance محتاج Redis/مخزن مشترك.
+11. **الاختبارات:** الميزات من 11.18 لحد 11.21 **مالهاش اختبارات**، ومفيش حاجة اتشغلت عليها. أعداد الاختبارات المذكورة في الأقسام الأقدم تاريخية.
+

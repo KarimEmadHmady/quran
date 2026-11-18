@@ -40,11 +40,11 @@ export function speechRecognitionCtor(): Ctor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-/** claude.md 5.10: try ar-SA and ar-EG. */
-export const SPEECH_LANGS = [
-  { code: 'ar-SA', label: 'فصحى / خليجي' },
-  { code: 'ar-EG', label: 'مصري' },
-] as const;
+/**
+ * claude.md 5.10: voice recognition language (BCP-47 tag given to SpeechRecognition.lang).
+ * Fixed to Egyptian Arabic; assigned to every new recognition instance (VoiceSearchButton.start).
+ */
+export const SPEECH_LANG = 'ar-EG';
 
 /** Arabic messages for the Web Speech error codes. */
 export function speechErrorMessage(code: string): string {
@@ -58,6 +58,8 @@ export function speechErrorMessage(code: string): string {
       return 'مفيش ميكروفون متاح.';
     case 'network':
       return 'خدمة التعرف على الصوت محتاجة اتصال بالإنترنت.';
+    case 'language-not-supported':
+      return 'اللهجة دي مش مدعومة في المتصفح ده. جرّب اللهجة التانية.';
     case 'aborted':
       return '';
     default:

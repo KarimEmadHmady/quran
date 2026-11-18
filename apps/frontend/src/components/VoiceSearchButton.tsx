@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import {
-  SPEECH_LANGS,
+  SPEECH_LANG,
   speechErrorMessage,
   speechRecognitionCtor,
   type SpeechRecognitionLike,
@@ -29,7 +29,6 @@ export function VoiceSearchButton({
 }) {
   const [supported, setSupported] = useState<boolean | null>(null);
   const [listening, setListening] = useState(false);
-  const [lang, setLang] = useState<string>(SPEECH_LANGS[0].code);
   const [error, setError] = useState('');
   const recRef = useRef<SpeechRecognitionLike | null>(null);
 
@@ -42,8 +41,9 @@ export function VoiceSearchButton({
     const Ctor = speechRecognitionCtor();
     if (!Ctor) return;
     setError('');
+    // A NEW recognition instance on every start, always Egyptian Arabic.
     const rec = new Ctor();
-    rec.lang = lang;
+    rec.lang = SPEECH_LANG;
     rec.interimResults = true;
     rec.maxAlternatives = 5;
     rec.continuous = false;
@@ -106,19 +106,6 @@ export function VoiceSearchButton({
 
   return (
     <div className="flex items-center gap-1">
-      <select
-        value={lang}
-        onChange={(e) => setLang(e.target.value)}
-        disabled={listening}
-        aria-label="لهجة التعرف على الصوت"
-        className="max-w-28 rounded-lg bg-transparent px-1 py-1 text-xs text-[var(--muted)] outline-none"
-      >
-        {SPEECH_LANGS.map((l) => (
-          <option key={l.code} value={l.code} className="bg-[var(--surface)] text-[var(--fg)]">
-            {l.label}
-          </option>
-        ))}
-      </select>
       <button
         type="button"
         onClick={listening ? stop : start}
