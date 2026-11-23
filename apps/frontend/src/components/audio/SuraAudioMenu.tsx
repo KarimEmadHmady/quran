@@ -135,7 +135,9 @@ export function SuraAudioMenu({ suraNumber }: { suraNumber: number }) {
               compact={compact}
               className={compact ? '!gap-1.5 !px-3 !py-2 !text-xs' : ''}
             />
-            <PlayAyahsButton suraNumber={suraNumber} compact={compact} />
+            {/* Hidden once the bar is pinned (scrolled down), on every screen size; the player bar
+                still controls playback. Back when scrolled to the top. */}
+            {!stuck && <PlayAyahsButton suraNumber={suraNumber} compact={compact} />}
           </div>
           <div
             role="radiogroup"
