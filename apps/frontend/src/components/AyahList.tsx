@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ayahHref, type Ayah } from '@/lib/quran';
+import { REF_BADGE } from '@/lib/refBadge';
 import { useAudioStore } from '@/store/useAudioStore';
 import { useBookmarkStore } from '@/store/useBookmarkStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
@@ -94,6 +95,31 @@ export function AyahList({
 
   useEffect(() => setSelected(null), [view]);
 
+  // Opening on #ayah-N: the browser's jump is computed while off-screen cards still have their
+  // estimated heights (.ayah-cv), so it can land a little off — under the top bar or the pinned
+  // sura bar. Once the jump has finished, snap the ayah exactly below them (scroll-margin-top). Once.
+  useEffect(() => {
+    const id = window.location.hash.match(/^#ayah-(\d+)$/)?.[1];
+    const el = id && listRef.current?.querySelector<HTMLElement>(`#ayah-${id}`);
+    if (!el) return;
+    let done = false;
+    const settle = () => {
+      if (done) return;
+      done = true;
+      const margin = parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+      if (Math.abs(el.getBoundingClientRect().top - margin) > 8) el.scrollIntoView({ block: 'start', behavior: 'instant' });
+    };
+    window.addEventListener('scrollend', settle, { once: true });
+    const t = setTimeout(settle, 1200); // browsers without scrollend, or no scroll at all
+    return () => {
+      done = true;
+      clearTimeout(t);
+      window.removeEventListener('scrollend', settle);
+    };
+    // Only on first mount: later hash changes are user navigation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toggleTafsir = (id: number) =>
     setOpenTafsir((s) => {
       const next = new Set(s);
@@ -160,7 +186,7 @@ export function AyahList({
                   {showRefs && (
                     <Link
                       href={ayahHref(a.suraNumber, a.id)}
-                      className="mb-2 block text-sm text-[var(--muted)] hover:text-[var(--accent)]"
+                      className={`${REF_BADGE} mb-4 transition-colors hover:border-[var(--accent)]/40 hover:text-[var(--accent)]`}
                     >
                       سورة {suraName} · آية {a.ayahNumber}
                     </Link>
@@ -222,8 +248,9 @@ export function AyahList({
               return (
                 <span key={a.id}>
                   {newSura && (
-                    <span className="my-2 block text-center font-[family-name:var(--font-ui)] text-sm text-[var(--muted)]">
-                      سورة {suraNames[a.suraNumber] ?? ''}
+                    // Same badge as the vertical view's reference line, centred above the sura's text.
+                    <span className="mb-4 mt-2 block text-center leading-none">
+                      <span className={REF_BADGE}>سورة {suraNames[a.suraNumber] ?? ''}</span>
                     </span>
                   )}
                   <span

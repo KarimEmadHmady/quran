@@ -16,10 +16,11 @@ function allows(origin: string | undefined, allowed: string[]): boolean | undefi
 }
 
 describe('buildCorsOptions', () => {
-  const allowed = ['http://localhost:3000', 'https://quran.example'];
+  const allowed = ['http://localhost:3000', 'https://knjhjpd9-3000.eun1.devtunnels.ms'];
 
   it('allows exactly the configured origins', () => {
     expect(allows('http://localhost:3000', allowed)).toBe(true);
+    expect(allows('https://knjhjpd9-3000.eun1.devtunnels.ms', allowed)).toBe(true);
     expect(allows('https://quran.example', allowed)).toBe(true);
   });
 

@@ -48,7 +48,7 @@ function LoginField({
           id={id}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-err` : undefined}
-          className={`h-12 w-full rounded-2xl border bg-[var(--surface-2)] px-4 text-[0.95rem] text-[var(--fg)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60 ${
+          className={`h-12 w-full rounded-2xl border bg-[var(--surface-2)] px-4 text-[0.75rem] text-[var(--fg)] outline-none transition placeholder:text-[var(--muted)] focus:border-[var(--accent)] focus:bg-[var(--surface)] focus:ring-2 focus:ring-[var(--accent)]/20 disabled:opacity-60 ${
             trailing ? 'pl-12' : ''
           } ${error ? 'border-[var(--danger)]' : 'border-transparent'}`}
         />

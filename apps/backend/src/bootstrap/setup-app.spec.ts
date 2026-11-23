@@ -8,7 +8,7 @@ describe('setupApp', () => {
     const config = new ConfigService({
       TRUST_PROXY: trustProxy,
       MAX_URL_LENGTH: 8192,
-      WEB_ORIGIN: ['http://localhost:3000'],
+      WEB_ORIGIN: ['http://localhost:3000', 'https://knjhjpd9-3000.eun1.devtunnels.ms'],
       BODY_LIMIT: '100kb',
     });
     const app = {

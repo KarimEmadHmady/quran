@@ -2,7 +2,7 @@ import { validateEnv } from './env.validation';
 
 const VALID_URL = 'mysql://user:s3cret-pass@localhost:3306/db';
 const SECRET = 'x'.repeat(32);
-const BASE = { DATABASE_URL: VALID_URL, WEB_ORIGIN: 'http://localhost:3000', JWT_SECRET: SECRET };
+const BASE = { DATABASE_URL: VALID_URL, WEB_ORIGIN: 'http://localhost:3000',  JWT_SECRET: SECRET };
 
 describe('validateEnv', () => {
   it('accepts a minimal valid config and applies every default', () => {
@@ -10,7 +10,7 @@ describe('validateEnv', () => {
       NODE_ENV: 'development',
       PORT: 3001,
       DATABASE_URL: VALID_URL,
-      WEB_ORIGIN: ['http://localhost:3000'],
+      WEB_ORIGIN: ['http://localhost:3000', 'https://knjhjpd9-3000.eun1.devtunnels.ms'],
       TRUST_PROXY: false,
       BODY_LIMIT: '100kb',
       MAX_URL_LENGTH: 8192,
@@ -36,10 +36,10 @@ describe('validateEnv', () => {
   it('parses WEB_ORIGIN lists and TRUST_PROXY hop counts', () => {
     const env = validateEnv({
       ...BASE,
-      WEB_ORIGIN: 'https://quran.example, http://localhost:3000',
+      WEB_ORIGIN: 'https://quran.example, http://localhost:3000',  
       TRUST_PROXY: '1',
     });
-    expect(env.WEB_ORIGIN).toEqual(['https://quran.example', 'http://localhost:3000']);
+    expect(env.WEB_ORIGIN).toEqual(['https://quran.example', 'http://localhost:3000', 'https://knjhjpd9-3000.eun1.devtunnels.ms']);
     expect(env.TRUST_PROXY).toBe(1);
   });
 

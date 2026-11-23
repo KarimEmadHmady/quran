@@ -25,7 +25,7 @@ export function TafsirPanel({ ayahId }: { ayahId: number }) {
   }, [ayahId, retry]);
 
   return (
-    <section aria-live="polite" className="mt-3 rounded-2xl bg-[var(--surface-2)] p-4 text-[0.95rem] leading-8">
+    <section aria-live="polite" className="mt-3 rounded-2xl bg-[var(--surface-2)] p-4 text-[0.75rem] leading-8">
       {state.kind === 'loading' && <p className="text-[var(--muted)]">جاري تحميل التفسير…</p>}
       {state.kind === 'error' && (
         <p className="text-[var(--danger)]">

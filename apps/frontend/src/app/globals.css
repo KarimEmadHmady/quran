@@ -171,6 +171,12 @@ mark.hl {
 [id^='dhikr-'] {
   scroll-margin-top: 5rem;
 }
+/* Sura page: the playback/layout bar is pinned under the top bar too (SuraAudioMenu), so a
+   jumped-to ayah must land below both. */
+body:has(.sura-sticky-bar) [id^='ayah-'] {
+  /* top bar + 0.5rem gap + the bar's measured height (--sura-bar-h, it wraps on phones) + 1rem */
+  scroll-margin-top: calc(var(--topbar-h) + var(--sura-bar-h, 4rem) + 1.5rem);
+}
 
 @layer components {
   .ui-card {
