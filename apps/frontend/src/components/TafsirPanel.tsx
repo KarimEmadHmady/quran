@@ -39,15 +39,57 @@ export function TafsirPanel({ ayahId }: { ayahId: number }) {
         <p className="text-[var(--muted)]">التفسير غير متوفر لهذه الآية.</p>
       )}
       {state.kind === 'done' &&
-        state.data.map((t) => (
-          <article key={t.bookId} className="[&+&]:mt-5">
-            <h3 className="mb-2 text-sm font-bold text-[var(--accent)]">
-              {t.bookName}
-              {t.author ? ` — ${t.author}` : ''}
-            </h3>
-            <TafsirText content={t.content} />
-          </article>
-        ))}
+        // Keyed by ayah too: switching ayahs (mushaf view) never keeps the previous "full passage" toggle.
+        state.data.map((t) => <TafsirEntry key={`${ayahId}-${t.bookId}`} tafsir={t} />)}
     </section>
+  );
+}
+
+const toArabicDigits = (n: number) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[Number(d)]);
+
+/**
+ * One book's tafsir for the selected ayah. When the book explains several ayahs together
+ * (t.passage), either only this ayah's exact part is shown (reliable split) with a button for the
+ * full passage, or the whole passage is shown with its ayah range. The text itself is never edited.
+ */
+function TafsirEntry({ tafsir: t }: { tafsir: PublicTafsir }) {
+  const [full, setFull] = useState(false);
+  const p = t.passage;
+  const range = p ? `${toArabicDigits(p.fromAyah)}–${toArabicDigits(p.toAyah)}` : '';
+  const showSegment = Boolean(p?.split && p.segment) && !full;
+
+  return (
+    <article className="[&+&]:mt-5">
+      <h3 className="mb-2 text-sm font-bold text-[var(--accent)]">
+        {t.bookName}
+        {t.author ? ` — ${t.author}` : ''}
+      </h3>
+      {p && !p.split && (
+        <div className="mb-3 space-y-1">
+          <span className="ui-badge ui-badge-blue">تفسير الآيات {range} معًا</span>
+          <p className="text-xs leading-6 text-[var(--muted)]">
+            شرح المؤلف هذه الآيات في موضع واحد، فيُعرض النص كاملًا كما ورد في المصدر.
+          </p>
+        </div>
+      )}
+      {p?.split && (
+        <p className="mb-2 text-xs leading-6 text-[var(--muted)]">
+          {full
+            ? `تفسير الآيات ${range} كاملًا كما ورد في المصدر.`
+            : `هذا تفسير الآية المختارة، من موضع واحد شرح فيه المؤلف الآيات ${range}.`}
+        </p>
+      )}
+      <TafsirText content={showSegment && p?.segment ? p.segment : t.content} />
+      {p?.split && (
+        <button
+          type="button"
+          onClick={() => setFull((f) => !f)}
+          aria-expanded={full}
+          className="mt-3 text-xs font-semibold text-[var(--accent)] underline underline-offset-4"
+        >
+          {full ? 'عرض تفسير الآية المختارة فقط' : `عرض تفسير الآيات ${range} كاملًا`}
+        </button>
+      )}
+    </article>
   );
 }

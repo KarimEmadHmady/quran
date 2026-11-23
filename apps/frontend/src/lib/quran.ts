@@ -34,11 +34,27 @@ export interface TopicNode {
   children?: TopicNode[];
 }
 
+/**
+ * The book explains consecutive ayahs together and the same text is stored on each of them.
+ * `split`: the boundaries are explicit in the text and `segment` is this ayah's exact part of
+ * `content`; otherwise the whole passage covers fromAyah–toAyah.
+ */
+export interface TafsirPassage {
+  suraNumber: number;
+  fromAyah: number;
+  toAyah: number;
+  split: boolean;
+  segment: string | null;
+}
+
 export interface PublicTafsir {
   bookId: number;
   bookName: string;
   author: string | null;
+  /** The full stored text, unchanged. */
   content: string;
+  /** null = the text belongs to this ayah only. */
+  passage: TafsirPassage | null;
 }
 
 /** The basmala exactly as stored in 1:1 (code points copied from the DB; mark order matters). */

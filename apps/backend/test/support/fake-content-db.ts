@@ -114,11 +114,17 @@ export function createFakeContentDb() {
       args?.skip ?? 0,
       args?.take === undefined ? undefined : (args.skip ?? 0) + args.take,
     );
+  /** Supports content `{ not: null }` / `{ equals }`, ayahId, bookId and `ayah: { suraNumber }`. */
   const withContent = (where: any = {}) =>
     tafsirs.filter(
       (t) =>
-        (where.content === undefined || t.content !== null) &&
+        (where.content === undefined ||
+          (where.content.equals !== undefined
+            ? t.content === where.content.equals
+            : t.content !== null)) &&
         (where.ayahId === undefined || t.ayahId === where.ayahId) &&
+        (where.ayah?.suraNumber === undefined ||
+          ayahs.find((a) => a.id === t.ayahId)?.suraNumber === where.ayah.suraNumber) &&
         inList(where.bookId, t.bookId),
     );
 
@@ -223,12 +229,19 @@ export function createFakeContentDb() {
         for (const t of withContent(where)) counts.set(t.bookId, (counts.get(t.bookId) ?? 0) + 1);
         return [...counts].map(([bookId, n]) => ({ bookId, _count: { _all: n } }));
       }),
-      findMany: jest.fn(async ({ where }: any) =>
-        withContent(where).map((t) => ({
-          bookId: t.bookId,
-          content: t.content,
-          book: { ...books.find((b) => b.id === t.bookId)! },
-        })),
+      findMany: jest.fn(async ({ where, select }: any) =>
+        withContent(where).map((t) => {
+          const row: any = {
+            bookId: t.bookId,
+            content: t.content,
+            book: { ...books.find((b) => b.id === t.bookId)! },
+          };
+          if (select?.ayah) {
+            const a = ayahs.find((x) => x.id === t.ayahId)!;
+            row.ayah = { ayahNumber: a.ayahNumber, textSimple: a.textSimple };
+          }
+          return row;
+        }),
       ),
     },
   };

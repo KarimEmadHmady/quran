@@ -44,17 +44,20 @@ function prismaStub() {
       findMany: jest.fn().mockResolvedValue([ayah]),
       count: jest.fn().mockResolvedValue(1),
       findUnique: jest.fn(({ where }: { where: { id: number } }) =>
-        Promise.resolve(where.id === 1 ? { id: 1 } : null),
+        Promise.resolve(where.id === 1 ? { id: 1, suraNumber: 1, ayahNumber: 1 } : null),
       ),
     },
     category: { findMany: jest.fn().mockResolvedValue(topics) },
     tafsirBook: { findMany: jest.fn().mockResolvedValue([{ id: 1, name: 'n', author: 'a' }]) },
     tafsir: {
-      findMany: jest
-        .fn()
-        .mockResolvedValue([
-          { bookId: 1, content: BISMILLAH_UTHMANI, book: { name: 'n', author: 'a' } },
-        ]),
+      // The passage lookup (same text in the sura) asks for `ayah`: only this ayah stores it.
+      findMany: jest.fn((args: { select?: { ayah?: unknown } }) =>
+        Promise.resolve(
+          args?.select?.ayah
+            ? [{ content: BISMILLAH_UTHMANI, ayah: { ayahNumber: 1, textSimple: 'بسم الله' } }]
+            : [{ bookId: 1, content: BISMILLAH_UTHMANI, book: { name: 'n', author: 'a' } }],
+        ),
+      ),
     },
   };
 }
@@ -175,7 +178,9 @@ describe('Quran read endpoints (e2e, Prisma stubbed)', () => {
       const res = await request(server).get('/tafsirs?ayah_id=1&book_ids=1').expect(200);
       expect(res.body).toEqual({
         ayahId: 1,
-        data: [{ bookId: 1, bookName: 'n', author: 'a', content: BISMILLAH_UTHMANI }],
+        data: [
+          { bookId: 1, bookName: 'n', author: 'a', content: BISMILLAH_UTHMANI, passage: null },
+        ],
       });
     });
 

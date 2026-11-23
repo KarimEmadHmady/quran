@@ -1,5 +1,7 @@
 /** Client for the NestJS API (claude.md 11.3). Shapes mirror the backend responses. */
 
+import type { PublicTafsir } from './quran';
+
 export const API_URL = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001').replace(/\/+$/, '');
 
 export type MatchType =
@@ -171,17 +173,8 @@ export function downloadBlob(blob: Blob, filename: string): void {
 }
 
 /** GET /tafsirs?ayah_id= — confirmed books only (the API hides the rest). */
-export async function tafsirsForAyah(
-  ayahId: number,
-  signal?: AbortSignal,
-): Promise<{ bookId: number; bookName: string; author: string | null; content: string }[]> {
-  return (
-    await getJson<{ data: { bookId: number; bookName: string; author: string | null; content: string }[] }>(
-      '/tafsirs',
-      { ayah_id: String(ayahId) },
-      signal,
-    )
-  ).data;
+export async function tafsirsForAyah(ayahId: number, signal?: AbortSignal): Promise<PublicTafsir[]> {
+  return (await getJson<{ data: PublicTafsir[] }>('/tafsirs', { ayah_id: String(ayahId) }, signal)).data;
 }
 
 /** GET /tafsirs/available?ayah_ids= — which of these ayahs (≤ 100) have a tafsir to show. */
