@@ -290,8 +290,8 @@ describe('existing features still work', () => {
     assert.ok(await page.$('button[aria-label="بحث صوتي"], main p')); // mic button (or the unsupported note)
 
     await page.goto(`${BASE}/surah/112`, { waitUntil: 'networkidle0' });
-    await clickText(page, '#ayah-6222 button', 'أضف للسلة');
-    await clickText(page, '#ayah-6223 button', 'أضف للسلة');
+    await clickText(page, '#ayah-6222 button', 'أضف لمختاراتي');
+    await clickText(page, '#ayah-6223 button', 'أضف لمختاراتي');
     assert.deepEqual(await storage(page, 'quran_cart'), [{ ayahId: 6222 }, { ayahId: 6223 }]);
 
     await page.goto(`${BASE}/cart`, { waitUntil: 'networkidle0' });

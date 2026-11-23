@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/AppChrome';
 import { getTopicTree } from '@/lib/serverApi';
 import { TopicsClient } from './TopicsClient';
 
@@ -11,8 +10,14 @@ export default async function TopicsPage() {
   const tree = await getTopicTree();
   return (
     <section>
-      <PageHeader title="المواضيع" />
-      {tree.length === 0 ? <p className="text-[var(--muted)]">مفيش مواضيع متاحة.</p> : <TopicsClient tree={tree} />}
+      {tree.length === 0 ? (
+        <>
+          <h1 className="mb-4 text-xl font-bold text-[var(--accent)]">المواضيع</h1>
+          <p className="text-[var(--muted)]">مفيش مواضيع متاحة.</p>
+        </>
+      ) : (
+        <TopicsClient tree={tree} />
+      )}
     </section>
   );
 }

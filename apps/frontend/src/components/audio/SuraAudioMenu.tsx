@@ -43,7 +43,7 @@ export function SuraAudioMenu({ suraNumber }: { suraNumber: number }) {
   };
 
   return (
-    <section aria-label="التلاوة والعرض" className="ui-card space-y-2.5 px-3 py-2.5">
+    <section aria-label="التلاوة والعرض" className="ui-elevated space-y-2.5 px-3 py-2.5">
       {/* Row 1: playback + layout */}
       <div className="flex flex-wrap items-center gap-2 justify-around ">
         <div>

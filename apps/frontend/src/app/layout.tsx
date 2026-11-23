@@ -4,8 +4,10 @@ import { AdhkarReminderScheduler } from '@/components/adhkar/AdhkarReminderSched
 import { BottomNav, MainFrame, TopBar } from '@/components/AppChrome';
 import { AudioPlayerBar } from '@/components/audio/AudioPlayerBar';
 import { FloatingCart } from '@/components/FloatingCart';
+import { IntroSplash } from '@/components/IntroSplash';
 import { Providers } from '@/components/Providers';
 import { ReadingSettingsPanel } from '@/components/ReadingSettingsPanel';
+import { ScrollReveal } from '@/components/ScrollReveal';
 import { ScrollToTop } from '@/components/ScrollToTop';
 import { BOOT_SCRIPT } from '@/lib/localStore';
 import './globals.css';
@@ -35,7 +37,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <FloatingCart />
           <ReadingSettingsPanel />
           <ScrollToTop />
+          <ScrollReveal />
           <AdhkarReminderScheduler />
+          <IntroSplash />
         </Providers>
       </body>
     </html>

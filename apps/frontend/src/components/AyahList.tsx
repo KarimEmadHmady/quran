@@ -118,7 +118,7 @@ export function AyahList({
         type="button"
         onClick={() => toggleTafsir(a.id)}
         aria-expanded={openTafsir.has(a.id)}
-        className={`ui-chip ${openTafsir.has(a.id) ? '!border-[var(--accent)] text-[var(--accent)]' : ''}`}
+        className= {`ui-chip ${openTafsir.has(a.id) ? '!border-[var(--accent)] text-[var(--accent)] ' : ''}`}
       >
         <Icon name="tafsir" className="h-4 w-4" />
         التفسير
@@ -153,7 +153,7 @@ export function AyahList({
                   id={`ayah-${a.id}`}
                   data-ayah-id={a.id}
                   aria-current={playingId === a.id ? 'true' : undefined}
-                  className={`ui-card p-5 transition ${playingId === a.id ? '!border-[var(--accent)] ring-2 ring-[var(--accent)]/40' : ''}`}
+                  className={`ui-elevated p-5 transition ${playingId === a.id ? 'ring-2 ring-[var(--accent)]/50' : ''}`}
                 >
                   {showRefs && (
                     <Link
@@ -169,9 +169,42 @@ export function AyahList({
                       ﴿{toArabicDigits(a.ayahNumber)}﴾
                     </span>
                   </p>
-                  <div className="mt-4 flex flex-wrap items-center justify-end gap-2 border-t border-[var(--border)] pt-3">
+                  {/*
+                    Phones: all actions on ONE row — each chip becomes a compact icon-over-label
+                    button with smaller text/icons, spread across the row. Larger screens: also one row
+                    (no wrapping), with slightly tighter chips on tablet widths so all six fit.
+                  */}
+                  {/* <div className="mt-4 flex flex-nowrap items-center justify-end gap-2 border-t [&_.ui-chip]:shrink-0 [&_.ui-chip]:whitespace-nowrap sm:max-lg:gap-1.5 sm:max-lg:[&_.ui-chip]:px-2.5 sm:max-lg:[&_.ui-chip]:text-[0.8rem] border-[var(--border)] pt-3 max-sm:flex-nowrap max-sm:justify-between max-sm:gap-1 max-sm:[&_.ui-chip]:min-w-0 max-sm:[&_.ui-chip]:flex-col max-sm:[&_.ui-chip]:justify-center max-sm:[&_.ui-chip]:gap-0.5 max-sm:[&_.ui-chip]:whitespace-nowrap max-sm:[&_.ui-chip]:rounded-xl max-sm:[&_.ui-chip]:px-1.5 max-sm:[&_.ui-chip]:py-1.5 max-sm:[&_.ui-chip]:text-[0.65rem] max-sm:[&_.ui-chip]:leading-tight max-sm:[&_.ui-chip_svg]:h-3.5 max-sm:[&_.ui-chip_svg]:w-3.5 max-sm:[&_.ui-chip>span.animate-spin]:h-3.5 max-sm:[&_.ui-chip>span.animate-spin]:w-3.5">
                     {actions(a)}
-                  </div>
+                  </div> */}
+
+
+<div
+  className="
+    mt-4 grid grid-cols-6 items-stretch gap-2
+    border-t border-[var(--border)] pt-3
+    sm:max-lg:gap-1.5
+    [&_.ui-chip]:!flex
+    [&_.ui-chip]:!min-w-0
+    [&_.ui-chip]:!w-full
+    [&_.ui-chip]:!shrink
+    [&_.ui-chip]:!whitespace-normal
+    max-sm:gap-1
+    max-sm:[&_.ui-chip]:flex-col
+    max-sm:[&_.ui-chip]:justify-center
+    max-sm:[&_.ui-chip]:gap-1
+    max-sm:[&_.ui-chip]:rounded-xl
+    max-sm:[&_.ui-chip]:px-1
+    max-sm:[&_.ui-chip]:py-2
+    max-sm:[&_.ui-chip]:text-[0.65rem]
+    max-sm:[&_.ui-chip]:leading-tight
+    max-sm:[&_.ui-chip_svg]:h-3.5
+    max-sm:[&_.ui-chip_svg]:w-3.5
+  "
+>
+  {actions(a)}
+</div>
+
                   {openTafsir.has(a.id) && <TafsirPanel ayahId={a.id} />}
                 </li>
               );
@@ -179,7 +212,7 @@ export function AyahList({
           </ol>
         </div>
       ) : (
-        <div ref={listRef} className="ui-card px-5 py-6">
+        <div ref={listRef} className="ui-elevated rounded-[1.75rem] px-5 py-7">
           <p className="quran-text text-justify" style={{ textAlignLast: 'center' }}>
             {ayahs.map((a, i) => {
               const newSura = showRefs && (i === 0 || ayahs[i - 1].suraNumber !== a.suraNumber);
@@ -243,7 +276,7 @@ export function AyahList({
               <Icon name="close" className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex flex-wrap items-center gap-2">{actions(selectedAyah)}</div>
+          <div className="flex flex-wrap items-center justify-center gap-2 [&_.ui-chip]:whitespace-nowrap">{actions(selectedAyah)}</div>
           {openTafsir.has(selectedAyah.id) && (
             <div className="max-h-[40vh] overflow-y-auto">
               <TafsirPanel ayahId={selectedAyah.id} />

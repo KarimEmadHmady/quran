@@ -39,17 +39,26 @@ export function DhikrCard({
   return (
     <article
       id={`dhikr-${number}`}
-      className={`ui-card p-4 transition ${complete ? 'border-[var(--success)]' : ''}`}
+      className={`ui-elevated p-5 transition ${complete ? 'ring-2 ring-[var(--success)]/60' : ''}`}
       aria-label={`الذكر ${toArabicDigits(number)}`}
     >
-      <header className="mb-2 flex flex-wrap items-center gap-2 text-sm">
-        <span className="ui-num">{toArabicDigits(number)}</span>
+      <header className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+        <span
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+            complete ? 'bg-[var(--success)] text-white' : 'bg-[var(--tile-mint)] text-[var(--accent)]'
+          }`}
+        >
+          {toArabicDigits(number)}
+        </span>
         {showCategoryLink && categoryTitle && (
-          <Link href={`/adhkar/${categoryId}#dhikr-${number}`} className="text-[var(--accent)] hover:underline">
+          <Link
+            href={`/adhkar/${categoryId}#dhikr-${number}`}
+            className="truncate rounded-full bg-[var(--tile-sand)] px-3 py-1 text-xs text-[var(--gold)] hover:underline"
+          >
             {categoryTitle}
           </Link>
         )}
-        <span className="ui-badge ui-badge-blue">
+        <span className="ui-badge ui-badge-green">
           {repeatCount === 1 ? 'مرة واحدة' : `${toArabicDigits(repeatCount)} مرات`}
         </span>
         <span className="flex-1" />
@@ -69,7 +78,7 @@ export function DhikrCard({
         {dhikr.text}
       </p>
 
-      <footer className="mt-3 flex flex-wrap items-center gap-3">
+      <footer className="mt-4 flex flex-wrap items-center gap-3 border-t border-[var(--border)] pt-4">
         <button
           type="button"
           onClick={() => increment(categoryId, number, repeatCount)}
@@ -79,8 +88,8 @@ export function DhikrCard({
               ? 'اكتمل العدد'
               : `تسبيح: تم ${toArabicDigits(done)} من ${toArabicDigits(repeatCount)}، متبقي ${toArabicDigits(remaining)}`
           }
-          className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-lg font-bold transition active:scale-95 ${
-            complete ? 'bg-[var(--success)] text-white' : 'ui-btn-primary'
+          className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-lg font-bold shadow-[0_6px_16px_-6px_rgb(23_88_74/0.5)] transition active:scale-95 ${
+            complete ? 'bg-[var(--success)] text-white' : 'ui-btn-primary !rounded-full'
           }`}
           style={
             complete

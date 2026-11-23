@@ -13,7 +13,7 @@ export default async function AdhkarRemindersPage() {
     <section>
       <PageHeader title="تذكير الأذكار" backHref="/adhkar" backLabel="الأذكار" />
       {reminders.length === 0 ? (
-        <div className="ui-card px-6 py-10 text-center" role="status">
+        <div className="ui-elevated px-6 py-10 text-center" role="status">
           <p className="font-semibold">التذكير مش متاح دلوقتي.</p>
         </div>
       ) : (

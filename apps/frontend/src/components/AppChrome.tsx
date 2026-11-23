@@ -28,20 +28,36 @@ export function MainFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Design top bar: the app name, then (left side in RTL) the menu button and the settings gear. */
+/**
+ * Design top bar: a deep green header with rounded bottom corners and a faint mosque on its left (/logo-opacity.png).
+ * Right side (RTL): the logo in a white circle + the app name and tagline; left side: the menu
+ * button and the settings gear (gold, see .topbar-actions in globals.css).
+ */
 export function TopBar() {
   const pathname = usePathname();
   if (isAdminPath(pathname)) return null;
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur">
-      <div className="mx-auto flex h-[var(--topbar-h)] max-w-2xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-          {/* app/icon.svg (served by Next.js at /icon.svg). First child = right side in RTL. */}
-          {/* eslint-disable-next-line @next/next/no-img-element -- tiny static SVG, no optimization needed */}
-          <img src="/icon.svg" alt="" aria-hidden width={26} height={26} className="h-[26px] w-[26px] shrink-0" />
-          القرآن الكريم
+    <header className="sticky top-0 z-30 overflow-hidden rounded-b-[1.75rem] border-b border-transparent bg-[var(--brand)] text-[var(--brand-fg)] shadow-[0_6px_20px_rgb(23_88_74/0.18)] backdrop-blur">
+      {/* eslint-disable-next-line @next/next/no-img-element -- decorative static image */}
+      <img
+        src="/logo-opacity.png"
+        alt=""
+        aria-hidden
+        className="pointer-events-none absolute -bottom-2 left-0 h-[165%] w-auto select-none opacity-60"
+      />
+      <div className="relative mx-auto flex h-[var(--topbar-h)] max-w-2xl items-center justify-between px-4">
+        <Link href="/" className="flex min-w-0 items-center gap-3">
+          {/* First child = right side in RTL. */}
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white p-1 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element -- small static logo */}
+            <img src="/logo-mark.png" alt="" aria-hidden width={40} height={40} className="h-full w-full object-contain" />
+          </span>
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate text-lg font-bold">القرآن الكريم</span>
+            <span className="truncate text-[0.7rem] text-[var(--brand-gold)]">معا نحو اتقان القرآن الكريم</span>
+          </span>
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="topbar-actions flex items-center gap-1">
           <MobileMenu />
           <SettingsButton />
         </div>
@@ -50,7 +66,7 @@ export function TopBar() {
   );
 }
 
-const NAV_ICON = 'h-6 w-6';
+const NAV_ICON = 'h-5 w-5';
 
 const TABS: { href: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
   { href: '/', label: 'الرئيسية', icon: 'home', match: (p) => p === '/' },
@@ -76,9 +92,10 @@ export function BottomNav() {
   useEffect(() => setMounted(true), []);
   if (isAdminPath(pathname)) return null;
 
+  // Design: the active tab is a filled green pill inside the floating bar.
   const item = (active: boolean) =>
-    `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 whitespace-nowrap py-2 text-[0.72rem] leading-tight transition focus-visible:outline-2 focus-visible:outline-[var(--accent)] ${
-      active ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
+    `flex min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-0.5 whitespace-nowrap rounded-full py-1.5 text-[0.72rem] leading-tight transition focus-visible:outline-2 focus-visible:outline-[var(--accent)] ${
+      active ? 'bg-[var(--primary-bg)] font-semibold text-[var(--primary-fg)]' : 'text-[var(--muted)] hover:text-[var(--fg)]'
     }`;
   const tab = (t: (typeof TABS)[number]) => (
     <Link key={t.href} href={t.href} className={item(t.match(pathname))} aria-current={t.match(pathname) ? 'page' : undefined}>
@@ -90,15 +107,15 @@ export function BottomNav() {
   return (
     <nav
       aria-label="التنقل الرئيسي"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur"
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(0.625rem+env(safe-area-inset-bottom))]"
     >
-      <div className="mx-auto flex max-w-2xl items-stretch px-2 pb-[env(safe-area-inset-bottom)]">
+      <div className="pointer-events-auto mx-auto flex h-[3.75rem] max-w-md items-stretch gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)]/95 p-1.5 shadow-[0_8px_28px_rgb(0_0_0/0.12)] backdrop-blur">
         {tab(TABS[0])}
         <button
           type="button"
           onClick={() => open('cart')}
           className={item(sheet === 'cart' || pathname === '/cart')}
-          aria-label={`السلة: ${mounted ? count : 0} آية`}
+          aria-label={`مختاراتي: ${mounted ? count : 0} آية`}
         >
           <span className="relative">
             <Icon name="cart" className={NAV_ICON} />
@@ -108,7 +125,7 @@ export function BottomNav() {
               </span>
             )}
           </span>
-          السلة
+          مختاراتي
         </button>
         {tab(TABS[1])}
         <button

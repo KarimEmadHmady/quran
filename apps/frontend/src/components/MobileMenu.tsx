@@ -7,21 +7,21 @@ import { createPortal } from 'react-dom';
 import { Icon, type IconName } from './Icon';
 
 /** The sections reached from the menu (existing routes; the bottom bar no longer lists them). */
-const ENTRIES: { href: string; label: string; icon: IconName }[] = [
-  { href: '/surah', label: 'السور', icon: 'book' },
-  { href: '/topics', label: 'المواضيع', icon: 'folder' },
-  { href: '/adhkar', label: 'الأذكار', icon: 'beads' },
-  { href: '/khatma', label: 'الورد اليومي', icon: 'calendar' },
+const ENTRIES: { href: string; label: string; hint: string; icon: IconName; tile: string }[] = [
+  { href: '/surah', label: 'السور', hint: 'تصفح سور القرآن الكريم', icon: 'book', tile: 'mint' },
+  { href: '/topics', label: 'المواضيع', hint: 'آيات مصنفة حسب الموضوع', icon: 'folder', tile: 'sand' },
+  { href: '/adhkar', label: 'الأذكار', hint: 'حصن المسلم', icon: 'beads', tile: 'gray' },
+  { href: '/khatma', label: 'الورد اليومي', hint: 'تابع ختمتك يوميا', icon: 'calendar', tile: 'mint' },
 ];
 
 const isActive = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
 /**
- * Top bar hamburger (three lines that morph into an X) + a sidebar that slides in from the
- * right (the start side in RTL) over a dimmed overlay. Overlay and sidebar start BELOW the top
- * bar so the animated X stays visible and usable; they are portalled to <body> because the
- * top bar's backdrop-blur would otherwise contain fixed children. Closes on overlay click, Escape, link
- * click and any route change. Focus moves into the panel when it opens and back to the button
+ * Top bar hamburger + a full-height sidebar that slides in from the right (the start side in
+ * RTL) over a dimmed overlay. Both cover the whole screen, top bar included, so the sidebar has
+ * its own X button. They are portalled to <body> because the top bar's backdrop-blur would
+ * otherwise contain fixed children. Closes on the X, overlay click, Escape, link click and any
+ * route change. Focus moves into the panel when it opens and back to the button
  * when it closes; the page behind does not scroll while it is open.
  */
 export function MobileMenu() {
@@ -31,15 +31,9 @@ export function MobileMenu() {
   const panelRef = useRef<HTMLDivElement>(null);
   const wasOpen = useRef(false);
   const [mounted, setMounted] = useState(false);
-  const [top, setTop] = useState(0);
   useEffect(() => setMounted(true), []);
 
-  const toggle = () => {
-    // The top bar is sticky at the top: its bottom edge is where the panel starts.
-    const bar = buttonRef.current?.closest('header');
-    setTop(Math.max(0, Math.round(bar?.getBoundingClientRect().bottom ?? 0)));
-    setOpen((o) => !o);
-  };
+  const toggle = () => setOpen((o) => !o);
 
   const close = useCallback(() => setOpen(false), []);
 
@@ -110,10 +104,9 @@ export function MobileMenu() {
           <>
       {/* Overlay */}
       <div
-        style={{ top }}
         aria-hidden
         onClick={close}
-        className={`fixed inset-x-0 bottom-0 z-40 bg-black/50 transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 bg-black/50 transition-opacity duration-300 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
       />
@@ -127,13 +120,25 @@ export function MobileMenu() {
         aria-label="القائمة"
         aria-hidden={!open}
         inert={!open}
-        style={{ top }}
-        className={`fixed bottom-0 right-0 z-40 flex w-72 max-w-[85vw] flex-col border-s border-[var(--border)] bg-[var(--surface)] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-transform duration-300 ease-out ${
+        className={`fixed inset-y-0 right-0 z-40 flex w-80 max-w-[85vw] flex-col overflow-hidden rounded-l-3xl border-s border-[var(--border)] bg-[var(--surface)] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] shadow-2xl transition-transform duration-300 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <nav aria-label="أقسام التطبيق" className="flex-1 overflow-y-auto p-3">
-          <ul className="space-y-1">
+        <div className="flex shrink-0 items-center justify-between px-5 pb-1 pt-4">
+          <span className="text-lg font-bold text-[var(--fg)]">القائمة</span>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="إغلاق القائمة"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--fg)] transition hover:bg-[var(--border)] focus-visible:outline-2 focus-visible:outline-[var(--accent)] active:scale-90"
+          >
+            <Icon name="close" className="h-5 w-5" />
+          </button>
+        </div>
+
+        <nav aria-label="أقسام التطبيق" className="flex-1 overflow-y-auto px-3 py-3">
+          <p className="mb-2 px-2 text-xs font-semibold text-[var(--muted)]">الأقسام</p>
+          <ul className="space-y-1.5">
             {ENTRIES.map((e) => {
               const active = isActive(pathname, e.href);
               return (
@@ -142,21 +147,52 @@ export function MobileMenu() {
                     href={e.href}
                     onClick={close}
                     aria-current={active ? 'page' : undefined}
-                    className={`flex items-center gap-3 rounded-xl px-4 py-3 font-semibold transition focus-visible:outline-2 focus-visible:outline-[var(--accent)] ${
+                    className={`group relative flex items-center gap-3 rounded-2xl border px-3 py-2.5 transition focus-visible:outline-2 focus-visible:outline-[var(--accent)] ${
                       active
-                        ? 'bg-[var(--badge-blue-bg)] text-[var(--badge-blue-fg)]'
-                        : 'text-[var(--fg)] hover:bg-[var(--surface-2)]'
+                        ? 'border-[var(--accent)]/40 bg-[var(--tile-mint)]'
+                        : 'border-transparent hover:border-[var(--border)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
-                    <Icon name={e.icon} className="h-6 w-6 shrink-0" />
-                    <span className="flex-1">{e.label}</span>
-                    <Icon name="chevron" className="h-4 w-4 opacity-50" />
+                    {active && (
+                      <span aria-hidden className="absolute inset-y-3 right-0 w-1 rounded-full bg-[var(--accent)]" />
+                    )}
+                    <span
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[var(--accent)] transition group-hover:scale-105"
+                      style={{ background: `var(--tile-${e.tile}-icon)` }}
+                    >
+                      <Icon name={e.icon} className="h-5 w-5" />
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col leading-tight">
+                      <span className={`font-semibold ${active ? 'text-[var(--accent)]' : 'text-[var(--fg)]'}`}>
+                        {e.label}
+                      </span>
+                      <span className="mt-0.5 truncate text-xs text-[var(--muted)]">{e.hint}</span>
+                    </span>
+                    <Icon
+                      name="chevron"
+                      className={`h-4 w-4 shrink-0 transition group-hover:-translate-x-0.5 ${active ? 'text-[var(--accent)]' : 'opacity-40'}`}
+                    />
                   </Link>
                 </li>
               );
             })}
           </ul>
         </nav>
+
+        {/* Brand block at the bottom: faded mosque logo over the brand green. */}
+        <div className="relative h-44 shrink-0 overflow-hidden rounded-t-3xl rounded-bl-3xl bg-[var(--brand)] px-5 pt-6 text-[var(--brand-fg)] shadow-[0_-4px_12px_rgba(0,0,0,0.08)]">
+          {/* eslint-disable-next-line @next/next/no-img-element -- small static decorative image */}
+          <img
+            src="/logo-opacity.png"
+            alt=""
+            aria-hidden
+            className="pointer-events-none absolute -bottom-3 left-1/2 w-56 max-w-none -translate-x-1/2 select-none"
+          />
+          <div className="relative flex flex-col items-center text-center">
+            <span className="text-xl font-bold">القرآن الكريم</span>
+            <span className="mt-1 text-xs text-[var(--brand-gold)]">معا نحو اتقان القرآن الكريم</span>
+          </div>
+        </div>
       </div>
           </>,
           document.body,

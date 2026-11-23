@@ -27,16 +27,40 @@ function suggestedSlot(now: Date): ReminderKey | null {
   return null;
 }
 
-function CategoryRow({ c }: { c: AdhkarCategory }) {
+/** Icon square colours, cycled per card (same as the topics list). */
+const TONES = [
+  'bg-[var(--tile-gray)] text-[var(--accent)]',
+  'bg-[var(--tile-sand)] text-[var(--gold)]',
+  'bg-[var(--tile-mint)] text-[var(--accent)]',
+];
+
+const sectionTitle = 'mb-3 text-lg font-bold text-[var(--accent)]';
+
+function CategoryRow({ c, index }: { c: AdhkarCategory; index: number }) {
   return (
-    <Link href={`/adhkar/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-[var(--surface-2)]">
-      <span className="ui-num">{num(c.order)}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block font-bold">{c.title}</span>
-        <span className="text-xs text-[var(--muted)]">{c.itemCount === 1 ? 'ذكر واحد' : `${num(c.itemCount)} أذكار`}</span>
+    <Link
+      href={`/adhkar/${c.id}`}
+      className="ui-elevated flex items-center gap-3 p-4 transition hover:-translate-y-0.5"
+    >
+      <span
+        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-bold ${TONES[index % TONES.length]}`}
+      >
+        {num(c.order)}
       </span>
-      {c.audioUrl && <Icon name="headphones" className="h-4 w-4 shrink-0 text-[var(--muted)]" />}
-      <Icon name="chevron" className="h-4 w-4 shrink-0 text-[var(--muted)]" />
+      <span className="min-w-0 flex-1">
+        <span className="block font-bold leading-snug">{c.title}</span>
+        <span className="mt-0.5 flex items-center gap-1.5 text-xs text-[var(--muted)]">
+          {c.itemCount === 1 ? 'ذكر واحد' : `${num(c.itemCount)} أذكار`}
+          {c.audioUrl && (
+            <>
+              <span aria-hidden>·</span>
+              <Icon name="headphones" className="h-3.5 w-3.5" />
+              <span className="sr-only">فيه تسجيل صوتي</span>
+            </>
+          )}
+        </span>
+      </span>
+      <Icon name="chevron" className="h-5 w-5 shrink-0 text-[var(--muted)]" />
     </Link>
   );
 }
@@ -44,20 +68,20 @@ function CategoryRow({ c }: { c: AdhkarCategory }) {
 function SearchResults({ res, query }: { res: AdhkarSearchResponse; query: string }) {
   if (res.categories.length === 0 && res.items.length === 0) {
     return (
-      <div className="ui-card px-6 py-8 text-center" role="status">
+      <div className="ui-elevated px-6 py-10 text-center" role="status">
         <p className="font-semibold">مفيش نتائج لـ «{query}»</p>
       </div>
     );
   }
   return (
-    <div className="space-y-4" role="region" aria-label="نتائج البحث">
+    <div className="space-y-6" role="region" aria-label="نتائج البحث">
       {res.categories.length > 0 && (
         <div>
-          <h2 className="ui-section-label mb-2">الأقسام ({num(res.categories.length)})</h2>
-          <ul className="ui-card divide-y divide-[var(--border)] overflow-hidden">
-            {res.categories.map((c) => (
+          <h2 className={sectionTitle}>الأقسام ({num(res.categories.length)})</h2>
+          <ul className="space-y-3">
+            {res.categories.map((c, i) => (
               <li key={c.id}>
-                <CategoryRow c={c} />
+                <CategoryRow c={c} index={i} />
               </li>
             ))}
           </ul>
@@ -65,17 +89,17 @@ function SearchResults({ res, query }: { res: AdhkarSearchResponse; query: strin
       )}
       {res.items.length > 0 && (
         <div>
-          <h2 className="ui-section-label mb-2">
+          <h2 className={sectionTitle}>
             الأذكار ({num(res.total)}){res.truncated ? ` · أول ${num(res.items.length)}` : ''}
           </h2>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {res.items.map(({ category, item }) => (
               <li key={`${item.categoryId}:${item.number}`}>
                 <Link
                   href={`/adhkar/${category.id}#dhikr-${item.number}`}
-                  className="ui-card block p-4 hover:border-[var(--accent)]"
+                  className="ui-elevated block p-4 transition hover:-translate-y-0.5"
                 >
-                  <span className="mb-1 block text-xs text-[var(--accent)]">
+                  <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-[var(--tile-mint)] px-3 py-1 text-xs text-[var(--accent)]">
                     {category.title} · الذكر {num(item.number)}
                   </span>
                   <span className="block font-[family-name:var(--font-quran)] text-lg leading-loose">{item.text}</span>
@@ -155,42 +179,57 @@ export function AdhkarHomeClient({
 
   return (
     <div className="space-y-5">
-      <div className="ui-hero p-5">
-        <p className="flex items-center gap-2 text-lg font-bold">
-          <Icon name="beads" className="h-6 w-6" />
-          أهلًا بك في الأذكار
-        </p>
-        <p className="mt-1 text-sm text-[var(--hero-muted)]">
-          أذكار اليوم والليلة من حصن المسلم: {num(categories.length)} قسمًا، بالترتيب، مع العدد والصوت.
-        </p>
-        {highlighted.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {highlighted.map((r) => (
-              <Link
-                key={r.key}
-                href={`/adhkar/${r.categoryId}`}
-                className="inline-flex items-center gap-2 rounded-full bg-[var(--surface)] px-4 py-2 text-sm font-semibold text-[var(--fg)]"
-              >
-                <Icon name="bell" className="h-4 w-4 text-[var(--accent)]" />
-                {due.length > 0 ? `حان وقت ${r.label}` : `مقترح الآن: ${r.label}`}
-              </Link>
-            ))}
-          </div>
-        )}
+      {/* Green hero (same as the topic / surah heroes). */}
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-[var(--hero)] px-5 py-6 text-[var(--hero-fg)] shadow-[var(--shadow-card)]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative static image */}
+        <img
+          src="/geometry-bg.png"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 h-44 w-auto select-none opacity-60"
+        />
+        <div className="relative">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-[var(--hero-muted)]">
+            <Icon name="beads" className="h-3.5 w-3.5" />
+            حصن المسلم
+          </span>
+          <h2 className="mt-3 text-2xl font-bold leading-snug">أهلًا بك في الأذكار</h2>
+          <p className="mt-2 text-sm leading-7 text-white/75">
+            أذكار اليوم والليلة من حصن المسلم: {num(categories.length)} قسمًا، بالترتيب، مع العدد والصوت.
+          </p>
+          {highlighted.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {highlighted.map((r) => (
+                <Link
+                  key={r.key}
+                  href={`/adhkar/${r.categoryId}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#17584a] shadow-sm transition hover:brightness-95"
+                >
+                  <Icon name="bell" className="h-4 w-4" />
+                  {due.length > 0 ? `حان وقت ${r.label}` : `مقترح الآن: ${r.label}`}
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Link href="/adhkar/favorites" className="ui-card flex items-center gap-3 p-4 hover:border-[var(--accent)]">
-          <Icon name="heart" className="h-6 w-6 text-[var(--danger)]" />
-          <span>
-            <span className="block font-semibold">المفضلة</span>
+        <Link href="/adhkar/favorites" className="ui-elevated flex items-center gap-3 p-4 transition hover:-translate-y-0.5">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--tile-sand)] text-[var(--danger)]">
+            <Icon name="heart" className="h-5 w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block font-bold">المفضلة</span>
             <span className="text-xs text-[var(--muted)]">{hydrated ? `${num(favCount)} ذكر` : '…'}</span>
           </span>
         </Link>
-        <Link href="/adhkar/reminders" className="ui-card flex items-center gap-3 p-4 hover:border-[var(--accent)]">
-          <Icon name="bell" className="h-6 w-6 text-[var(--accent)]" />
-          <span>
-            <span className="block font-semibold">التذكير</span>
+        <Link href="/adhkar/reminders" className="ui-elevated flex items-center gap-3 p-4 transition hover:-translate-y-0.5">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--tile-mint)] text-[var(--accent)]">
+            <Icon name="bell" className="h-5 w-5" />
+          </span>
+          <span className="min-w-0">
+            <span className="block font-bold">التذكير</span>
             <span className="text-xs text-[var(--muted)]">
               {hydrated
                 ? Object.values(prefs).some((p) => p?.enabled)
@@ -202,11 +241,11 @@ export function AdhkarHomeClient({
         </Link>
       </div>
 
-      <div className="relative">
+      <div className="ui-elevated relative rounded-2xl">
         <label htmlFor={inputId} className="sr-only">
           ابحث في الأذكار
         </label>
-        <Icon name="search" className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted)]" />
+        <Icon name="search" className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--muted)]" />
         <input
           id={inputId}
           type="search"
@@ -216,7 +255,7 @@ export function AdhkarHomeClient({
           onKeyDown={(e) => e.key === 'Escape' && setQuery('')}
           placeholder="ابحث في نص الذكر أو اسم القسم…"
           autoComplete="off"
-          className="ui-input w-full py-2.5 pe-10 ps-10"
+          className="w-full bg-transparent py-3.5 pe-11 ps-11 text-sm outline-none placeholder:text-[var(--muted)]"
         />
         {query && (
           <button
@@ -246,10 +285,14 @@ export function AdhkarHomeClient({
         <>
           {hydrated && recent.length > 0 && (
             <div>
-              <h2 className="ui-section-label mb-2">آخر ما فتحت</h2>
-              <div className="flex flex-wrap gap-2">
+              <h2 className={sectionTitle}>آخر ما فتحت</h2>
+              <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
                 {recent.map((r) => (
-                  <Link key={r.id} href={`/adhkar/${r.id}`} className="ui-chip">
+                  <Link
+                    key={r.id}
+                    href={`/adhkar/${r.id}`}
+                    className="shrink-0 whitespace-nowrap rounded-full bg-[var(--surface-2)] px-5 py-2 text-sm text-[var(--fg)] transition hover:text-[var(--accent)]"
+                  >
                     {r.title}
                   </Link>
                 ))}
@@ -257,11 +300,11 @@ export function AdhkarHomeClient({
             </div>
           )}
           <div>
-            <h2 className="ui-section-label mb-2">الأقسام</h2>
-            <ul className="ui-card divide-y divide-[var(--border)] overflow-hidden">
-              {categories.map((c) => (
+            <h2 className={sectionTitle}>الأقسام</h2>
+            <ul className="space-y-3">
+              {categories.map((c, i) => (
                 <li key={c.id}>
-                  <CategoryRow c={c} />
+                  <CategoryRow c={c} index={i} />
                 </li>
               ))}
             </ul>

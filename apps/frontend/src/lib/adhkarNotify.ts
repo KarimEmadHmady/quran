@@ -59,7 +59,7 @@ export async function showAdhkarNotification(opts: { title: string; body: string
   const options: NotificationOptions = {
     body: opts.body,
     tag: opts.tag,
-    icon: '/icon.svg',
+    icon: '/logo-mark.png',
     lang: 'ar',
     dir: 'rtl',
     data: { url: opts.url },

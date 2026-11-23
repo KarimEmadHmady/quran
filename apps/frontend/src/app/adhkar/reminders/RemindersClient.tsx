@@ -56,9 +56,11 @@ export function RemindersClient({ reminders }: { reminders: ReminderDefinition[]
 
   return (
     <div className="space-y-4">
-      <div className="ui-card space-y-2 p-4 text-sm" role="status">
-        <p className="flex items-center gap-2 font-semibold">
-          <Icon name="bell" className="h-5 w-5 text-[var(--accent)]" />
+      <div className="ui-elevated space-y-3 p-4 text-sm" role="status">
+        <p className="flex items-center gap-3 font-semibold">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[var(--tile-mint)] text-[var(--accent)]">
+            <Icon name="bell" className="h-5 w-5" />
+          </span>
           {PERMISSION_TEXT[permission]}
         </p>
         {permission === 'granted' && (
@@ -69,12 +71,20 @@ export function RemindersClient({ reminders }: { reminders: ReminderDefinition[]
         {testMsg && <p className="text-[var(--muted)]">{testMsg}</p>}
       </div>
 
-      <ul className="ui-card divide-y divide-[var(--border)] overflow-hidden">
-        {reminders.map((r) => {
+      <h2 className="text-lg font-bold text-[var(--accent)]">مواعيد التذكير</h2>
+      <ul className="space-y-3">
+        {reminders.map((r, i) => {
           const p = effectivePref(r, prefs);
           const timeId = `reminder-time-${r.key}`;
           return (
-            <li key={r.key} className="flex flex-wrap items-center gap-3 px-4 py-3">
+            <li key={r.key} className="ui-elevated flex flex-wrap items-center gap-3 p-4">
+              <span
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${
+                  ['bg-[var(--tile-gray)] text-[var(--accent)]', 'bg-[var(--tile-sand)] text-[var(--gold)]', 'bg-[var(--tile-mint)] text-[var(--accent)]'][i % 3]
+                }`}
+              >
+                <Icon name="bell" className="h-5 w-5" />
+              </span>
               <span className="min-w-0 flex-1">
                 <span className="block font-bold">{r.label}</span>
                 <Link href={`/adhkar/${r.categoryId}`} className="text-xs text-[var(--accent)] hover:underline">
@@ -89,7 +99,7 @@ export function RemindersClient({ reminders }: { reminders: ReminderDefinition[]
                 type="time"
                 value={p.time}
                 onChange={(e) => isTime(e.target.value) && setReminder(r.key, { ...p, time: e.target.value })}
-                className="ui-input w-auto px-3 py-1.5 text-sm"
+                className="w-auto rounded-full border border-transparent bg-[var(--surface-2)] px-3 py-1.5 text-sm text-[var(--fg)] outline-none focus:border-[var(--accent)]"
                 dir="ltr"
               />
               <button
@@ -111,8 +121,8 @@ export function RemindersClient({ reminders }: { reminders: ReminderDefinition[]
         })}
       </ul>
 
-      <div className="ui-card space-y-1 p-4 text-sm text-[var(--muted)]">
-        <p className="font-semibold text-[var(--fg)]">إزاي التذكير بيشتغل؟</p>
+      <div className="space-y-1.5 rounded-2xl bg-[var(--tile-gray)] p-4 text-sm leading-7 text-[var(--muted)]">
+        <p className="font-bold text-[var(--accent)]">إزاي التذكير بيشتغل؟</p>
         <p>• التذكير بيوصل كإشعار طول ما التطبيق مفتوح في أي تبويب (حتى لو التبويب في الخلفية).</p>
         <p>
           • لو التطبيق كان مقفول وقت التذكير، الإشعار بيظهر مرة واحدة أول ما تفتحه خلال ساعتين من الوقت، وكمان

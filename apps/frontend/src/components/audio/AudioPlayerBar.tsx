@@ -83,7 +83,7 @@ export function AudioPlayerBar() {
     return (
       <section
         aria-label="مشغّل التلاوة"
-        className="fixed inset-x-0 bottom-16 z-30 mx-auto flex w-[calc(100%-1rem)] max-w-2xl items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 text-sm shadow-2xl backdrop-blur"
+        className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 mx-auto flex w-[calc(100%-1rem)] max-w-2xl items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 text-sm shadow-2xl backdrop-blur"
       >
         <Icon name="headphones" className="h-5 w-5 shrink-0 text-[var(--muted)]" />
         <p className="flex-1 text-[var(--muted)]">لا يوجد استماع محفوظ. اضغط «استماع» على أي آية أو شغّل سورة.</p>
@@ -140,7 +140,7 @@ export function AudioPlayerBar() {
   return (
     <section
       aria-label="مشغّل التلاوة"
-      className="fixed inset-x-0 bottom-16 z-30 mx-auto w-[calc(100%-1rem)] max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 shadow-2xl backdrop-blur"
+      className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 mx-auto w-[calc(100%-1rem)] max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface)]/95 shadow-2xl backdrop-blur"
     >
       {expanded && (
         <div id={panelId} className="space-y-4 border-b border-[var(--border)] p-4">

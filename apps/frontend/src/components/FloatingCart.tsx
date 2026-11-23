@@ -30,14 +30,14 @@ export function FloatingCart() {
   if (!isOpen) return null;
 
   return (
-    <BottomSheet label="السلة" onClose={close}>
+    <BottomSheet label="مختاراتي" onClose={close}>
       <header className="mb-4 flex items-center justify-between pl-10">
-        <h2 className="text-lg font-bold">السلة</h2>
+        <h2 className="text-lg font-bold">مختاراتي</h2>
         <span className="ui-badge ui-badge-blue">{items.length} آية</span>
       </header>
       {items.length === 0 ? (
         <p className="py-6 text-center text-sm text-[var(--muted)]">
-          السلة فاضية.{' '}
+          مختاراتي فاضية.{' '}
           <Link href="/search" onClick={close} className="text-[var(--accent)] underline">
             ابحث وأضف آيات
           </Link>
@@ -102,10 +102,10 @@ export function FloatingCart() {
             <ExportPdfButton />
             <div className="flex justify-between text-sm">
               <Link href="/cart" onClick={close} className="text-[var(--accent)] underline">
-                مراجعة السلة وإضافة التفسير
+                مراجعة مختاراتي وإضافة التفسير
               </Link>
               <button type="button" onClick={clear} className="text-[var(--muted)] underline">
-                تفريغ السلة
+                تفريغ مختاراتي
               </button>
             </div>
           </div>

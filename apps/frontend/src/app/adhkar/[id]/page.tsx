@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PageHeader } from '@/components/AppChrome';
+import Link from 'next/link';
+import { Icon } from '@/components/Icon';
 import { parseIntParam } from '@/lib/routeParams';
 import { getAdhkarCategory } from '@/lib/serverApi';
 import { AdhkarCategoryClient } from './AdhkarCategoryClient';
@@ -24,9 +25,22 @@ export default async function AdhkarCategoryPage({ params }: Props) {
 
   return (
     <article className="space-y-4">
-      <PageHeader title={data.category.title} backHref="/adhkar" backLabel="الأذكار" />
+      {/* Title row (same as a topic page): round back button, «الأذكار» in gold, the title. */}
+      <header className="flex items-center gap-3">
+        <Link
+          href="/adhkar"
+          aria-label="الأذكار"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--fg)] hover:text-[var(--accent)]"
+        >
+          <Icon name="back" className="h-5 w-5" />
+        </Link>
+        <div className="min-w-0">
+          <p className="truncate text-xs text-[var(--gold)]">الأذكار</p>
+          <h1 className="truncate text-lg font-bold">{data.category.title}</h1>
+        </div>
+      </header>
       {data.items.length === 0 ? (
-        <div className="ui-card px-6 py-10 text-center" role="status">
+        <div className="ui-elevated px-6 py-10 text-center" role="status">
           <p className="font-semibold">مفيش أذكار في القسم ده.</p>
         </div>
       ) : (

@@ -8,6 +8,8 @@ import { SearchBox } from '@/components/SearchBox';
 import { VoiceSearchButton, type VoiceResult } from '@/components/VoiceSearchButton';
 import { ApiRequestError, clampQuery, search, tafsirAvailability, type SearchResponse, type SearchResult } from '@/lib/api';
 import { TafsirModal } from '@/components/TafsirModal';
+import { PageHeader } from '@/components/AppChrome';
+import { Icon } from '@/components/Icon';
 
 const PAGE_SIZE = 20;
 /** claude.md 5.7: with a low-confidence top result, show the best 3 as suggestions. */
@@ -80,20 +82,43 @@ export function SearchClient() {
     go(transcript, { type: 'voice' });
   };
 
+  // An edited transcript is no longer what the recognizer heard: search it as text.
+  const submit = (v: string) => go(v, { type: voice && v.trim() === voice.transcript ? 'voice' : 'text' });
+
   return (
     <div className="space-y-5">
-      <div className="ui-input relative flex items-center gap-1 pe-1 focus-within:border-[var(--accent)]">
-        <SearchBox
-          value={input}
-          onChange={setInput}
-          onSubmit={(v) => {
-            // An edited transcript is no longer what the recognizer heard: search it as text.
-            go(v, { type: voice && v.trim() === voice.transcript ? 'voice' : 'text' });
-          }}
-        />
+      <PageHeader title="البحث">
+        {/* Design: the search mode chip sits at the far (left) end of the title row. */}
+        <span className="ms-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-2)] px-3 py-1 text-xs text-[var(--muted)]">
+          <span className="h-1.5 w-1.5 rounded-full bg-[var(--accent)]" aria-hidden />
+          {type === 'voice' ? 'بحث صوتي' : 'بحث نصي'}
+        </span>
+      </PageHeader>
+
+      <div className="relative flex items-center gap-1 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-1.5 shadow-[0_2px_10px_rgb(0_0_0/0.04)] transition focus-within:border-[var(--accent)]">
+        {/* RTL: first child = right side (mic), then the field, then clear + search on the left. */}
         <VoiceSearchButton onInterim={setInput} onResult={onVoice} />
+        <SearchBox value={input} onChange={setInput} onSubmit={submit} />
+        {input && (
+          <button
+            type="button"
+            onClick={() => setInput('')}
+            aria-label="مسح نص البحث"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--surface-2)] text-[var(--muted)] hover:text-[var(--fg)]"
+          >
+            <Icon name="close" className="h-4 w-4" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => submit(input)}
+          aria-label="بحث"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[var(--fg)] hover:bg-[var(--surface-2)]"
+        >
+          <Icon name="search" className="h-6 w-6" />
+        </button>
       </div>
-      <div className="h-3" aria-hidden />
+      <div className="h-1" aria-hidden />
 
       {type === 'voice' && voice && voice.transcript === q && (
         <section className="ui-card p-4 text-sm">
@@ -159,6 +184,7 @@ function Results({
   const low = data.results[0]?.confidence === 'low';
   const shown = low && !showAll && data.page === 1 ? data.results.slice(0, LOW_CONFIDENCE_TOP) : data.results;
   const invalid = data.reference?.status === 'invalid' ? data.reference : null;
+  const canShowAll = low && !showAll && data.page === 1 && data.total > LOW_CONFIDENCE_TOP;
 
   // One request per results page: which ayahs have a tafsir (the «تفسير» button shows only there).
   const [withTafsir, setWithTafsir] = useState<Set<number>>(new Set());
@@ -212,23 +238,52 @@ function Results({
         <p className="text-[var(--danger)]">مفيش سورة رقم {invalid.sura} (السور من 1 لـ 114).</p>
       )}
 
-      <p className="text-sm text-[var(--muted)]">
-        {data.total === 0 ? 'مفيش نتايج.' : `${data.total} نتيجة`}
-      </p>
-      {low && !showAll && data.page === 1 && data.total > LOW_CONFIDENCE_TOP && (
-        <p className="text-sm">
-          مش متأكدين من التطابق — دي أقرب {LOW_CONFIDENCE_TOP} اقتراحات.{' '}
-          <button type="button" className="text-[var(--accent)] underline" onClick={onShowAll}>
-            عرض كل النتايج
-          </button>
+      <div className="flex items-center justify-between gap-2 px-1 text-sm">
+        <p className={data.total === 0 ? 'text-[var(--muted)]' : 'font-bold text-[var(--fg)]'}>
+          {data.total === 0 ? 'مفيش نتايج.' : `${data.total} نتيجة`}
+        </p>
+        {data.totalPages > 1 && (
+          <p className="text-xs text-[var(--muted)]">
+            صفحة {data.page} من {data.totalPages}
+          </p>
+        )}
+      </div>
+      {canShowAll && (
+        <p className="px-1 text-sm text-[var(--muted)]">
+          مش متأكدين من التطابق — دي أقرب {LOW_CONFIDENCE_TOP} اقتراحات.
         </p>
       )}
 
       <div className="space-y-3">
-        {shown.map((r) => (
-          <AyahCard key={r.ayahId} result={r} onTafsir={withTafsir.has(r.ayahId) ? () => setTafsirOf(r) : undefined} />
+        {shown.map((r, i) => (
+          <AyahCard
+            key={r.ayahId}
+            result={r}
+            position={(data.page - 1) * PAGE_SIZE + i + 1}
+            onTafsir={withTafsir.has(r.ayahId) ? () => setTafsirOf(r) : undefined}
+          />
         ))}
       </div>
+
+      {(canShowAll || (data.totalPages > 1 && (showAll || !low))) && (
+        <div className="flex items-center justify-center gap-3 pt-2 text-[var(--muted)]" aria-hidden>
+          <span className="h-px w-16 bg-[var(--border)]" />
+          <span className="text-xs">✦</span>
+          <span className="h-px w-16 bg-[var(--border)]" />
+        </div>
+      )}
+      {canShowAll && (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={onShowAll}
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--fg)] hover:text-[var(--accent)]"
+          >
+            عرض كل النتايج
+            <Icon name="chevron" className="h-4 w-4 -rotate-90" />
+          </button>
+        </div>
+      )}
 
       {tafsirOf && (
         <TafsirModal
@@ -241,7 +296,7 @@ function Results({
       )}
 
       {data.totalPages > 1 && (showAll || !low) && (
-        <nav aria-label="الصفحات" className="flex items-center justify-center gap-3 pt-2">
+        <nav aria-label="الصفحات" className="flex items-center justify-center gap-3">
           <PageButton disabled={data.page <= 1} onClick={() => onSearch(data.query.raw, { page: data.page - 1 })}>
             السابق
           </PageButton>

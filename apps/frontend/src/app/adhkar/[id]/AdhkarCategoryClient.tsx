@@ -39,29 +39,44 @@ export function AdhkarCategoryClient({ category, items }: { category: AdhkarCate
 
   return (
     <div className="space-y-4">
-      <div className="ui-hero flex flex-wrap items-center gap-3 px-5 py-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">
+      {/* Green hero (same as the topic page): title, counts, progress, whole-category audio, reset. */}
+      <div className="relative overflow-hidden rounded-[1.5rem] bg-[var(--hero)] px-5 py-6 text-[var(--hero-fg)] shadow-[var(--shadow-card)]">
+        {/* eslint-disable-next-line @next/next/no-img-element -- decorative static image */}
+        <img
+          src="/geometry-bg.png"
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute left-0 top-0 h-44 w-auto select-none opacity-60"
+        />
+        <div className="relative">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs text-[var(--hero-muted)]">
+            <Icon name="beads" className="h-3.5 w-3.5" />
+            {items.length === 1 ? 'ذكر واحد' : `${num(items.length)} أذكار`}
+          </span>
+          <p className="mt-3 text-2xl font-bold leading-snug">{category.title}</p>
+          <p className="mt-3 text-sm font-semibold">
             {allDone ? 'أتممت أذكار هذا القسم ✓' : `أتممت ${num(completed)} من ${num(items.length)}`}
           </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[var(--surface)]/40">
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
             <div
-              className="h-full rounded-full bg-[var(--accent)] transition-all"
+              className="h-full rounded-full bg-[var(--brand-gold)] transition-all"
               style={{ width: `${Math.round((completed / items.length) * 100)}%` }}
             />
           </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2 [&_.ui-chip]:border-white/20 [&_.ui-chip]:bg-white/10 [&_.ui-chip]:text-white">
+            <AdhkarAudioButton id={`category:${category.id}`} path={category.audioUrl} label={`القسم كاملًا: ${category.title}`} />
+            {started && (
+              <button
+                type="button"
+                onClick={() => window.confirm('إعادة كل العدّادات في هذا القسم؟') && resetCategory(category.id)}
+                className="ui-chip"
+              >
+                <Icon name="reset" className="h-4 w-4" />
+                إعادة الكل
+              </button>
+            )}
+          </div>
         </div>
-        <AdhkarAudioButton id={`category:${category.id}`} path={category.audioUrl} label={`القسم كاملًا: ${category.title}`} />
-        {started && (
-          <button
-            type="button"
-            onClick={() => window.confirm('إعادة كل العدّادات في هذا القسم؟') && resetCategory(category.id)}
-            className="ui-chip"
-          >
-            <Icon name="reset" className="h-4 w-4" />
-            إعادة الكل
-          </button>
-        )}
       </div>
 
       <ol className="space-y-3">

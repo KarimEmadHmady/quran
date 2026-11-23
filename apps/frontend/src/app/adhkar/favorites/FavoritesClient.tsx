@@ -34,7 +34,7 @@ export function FavoritesClient() {
 
   if (!hasFavorites) {
     return (
-      <div className="ui-card px-6 py-10 text-center" role="status">
+      <div className="ui-elevated px-6 py-10 text-center" role="status">
         <p className="font-semibold">مفيش أذكار في المفضلة لسه.</p>
         <p className="mt-1 text-sm text-[var(--muted)]">اضغط على ♡ في أي ذكر عشان يظهر هنا.</p>
         <Link href="/adhkar" className="ui-chip mt-4">

@@ -41,11 +41,14 @@ export function PlaySuraButton({
   suraNumber,
   className = '',
   compact = false,
+  iconOnly = false,
 }: {
   suraNumber: number;
   className?: string;
   /** Short label («السورة كاملة»); the full label stays as tooltip / accessible name. */
   compact?: boolean;
+  /** Round icon-only button (the sura list rows); same behaviour, label kept as aria-label. */
+  iconOnly?: boolean;
 }) {
   const playFullSurah = useAudioStore((s) => s.playFullSurah);
   const toggle = useAudioStore((s) => s.toggle);
@@ -56,13 +59,36 @@ export function PlaySuraButton({
   const active = isThis && status !== 'idle' && status !== 'ended' && status !== 'error';
   const loading = isThis && (status === 'loading' || status === 'buffering');
   const playing = isThis && status === 'playing';
+  const onClick = () => (active ? toggle() : playFullSurah(suraNumber));
+  const label = playing ? 'إيقاف مؤقت للسورة' : active ? 'متابعة السورة' : 'تشغيل السورة كاملة';
+
+  if (iconOnly) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={playing}
+        aria-label={label}
+        title={label}
+        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition ${
+          active ? 'bg-[var(--primary-bg)] text-[var(--primary-fg)]' : 'bg-[var(--surface-2)] text-[var(--fg)] hover:text-[var(--accent)]'
+        } ${className}`}
+      >
+        {loading ? (
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
+        ) : (
+          <Icon name={playing ? 'pause' : 'play'} className="h-4 w-4" />
+        )}
+      </button>
+    );
+  }
 
   return (
     <button
       type="button"
-      onClick={() => (active ? toggle() : playFullSurah(suraNumber))}
+      onClick={onClick}
       aria-pressed={playing}
-      aria-label={playing ? 'إيقاف مؤقت للسورة' : active ? 'متابعة السورة' : 'تشغيل السورة كاملة'}
+      aria-label={label}
       title={compact ? 'تشغيل السورة كاملة (ملف واحد)' : undefined}
       className={`ui-btn-primary inline-flex shrink-0 items-center justify-center gap-2 px-4 py-2.5 text-sm ${className} ${
         active ? 'ring-2 ring-[var(--accent)]' : ''

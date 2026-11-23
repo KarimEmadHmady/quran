@@ -17,7 +17,7 @@ export default async function AdhkarPage() {
     <section>
       <PageHeader title="الأذكار" />
       {categories.length === 0 ? (
-        <div className="ui-card px-6 py-10 text-center" role="status">
+        <div className="ui-elevated px-6 py-10 text-center" role="status">
           <p className="font-semibold">لا يوجد أذكار متاحة حاليا .</p>
         </div>
       ) : (

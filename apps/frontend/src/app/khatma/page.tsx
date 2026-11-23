@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { PageHeader } from '@/components/AppChrome';
 import { getSuras } from '@/lib/serverApi';
 import { KhatmaClient } from './KhatmaClient';
 
@@ -11,7 +10,6 @@ export default async function KhatmaPage() {
   const suras = await getSuras();
   return (
     <section>
-      <PageHeader title="الختمة والورد اليومي" />
       <KhatmaClient suras={suras} />
     </section>
   );

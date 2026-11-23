@@ -80,7 +80,7 @@ export function ReadingSettingsPanel() {
               />
             </button>
           </div>
-
+{/* 
           <fieldset className="space-y-3 py-4 text-sm">
             <legend className="mb-3">نص صفحات القراءة</legend>
             <div className="flex gap-2">
@@ -92,7 +92,7 @@ export function ReadingSettingsPanel() {
               </button>
             </div>
             <p className="text-xs text-[var(--muted)]">نتائج البحث بتفضل بالرسم العثماني.</p>
-          </fieldset>
+          </fieldset> */}
         </div>
         <p className="ui-section-label">التلاوة</p>
         <div className="rounded-2xl bg-[var(--surface-2)] px-4 py-4">

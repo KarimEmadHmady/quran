@@ -16,68 +16,126 @@
 }
 
 /*
- * Design tokens ("frontend design" folder): a dark, app-like UI with a navy highlight card,
- * blue accents and white primary buttons. Light mode is the same design inverted.
+ * Design tokens ("frontend design" folder, 2026-11 redesign): a warm off-white page, white cards
+ * with soft shadows, a deep green brand colour (header, primary buttons, active tab) and gold
+ * accents. Dark mode keeps the same green/gold identity on a dark green-tinted background.
  */
 :root {
-  --bg: #f4f4f5;
+  --bg: #f8f7f3;
   --surface: #ffffff;
-  --surface-2: #f1f1f3;
-  --border: #e4e4e7;
-  --fg: #18181b;
-  --muted: #71717a;
-  --accent: #2563eb;
-  --hero: #e6efff;
-  --hero-fg: #0b2a55;
-  --hero-muted: #2563eb;
-  --primary-bg: #18181b;
+  --surface-2: #f1f0ec;
+  --border: #e7e5df;
+  --fg: #1c2a25;
+  --muted: #6f7773;
+  --accent: #1b5e4b;
+  --gold: #8a6a1e;
+  --brand: #17584a;
+  --brand-fg: #ffffff;
+  --brand-gold: #e9c46a;
+  --hero: #17584a;
+  --hero-fg: #ffffff;
+  --hero-muted: #e9c46a;
+  --primary-bg: #1b5e4b;
   --primary-fg: #ffffff;
   --mark: #fde68a;
   --mark-fg: #18181b;
   --success: #16a34a;
   --danger: #dc2626;
-  --badge-green-bg: #dcfce7;
-  --badge-green-fg: #15803d;
-  --badge-blue-bg: #dbeafe;
-  --badge-blue-fg: #1d4ed8;
-  --track: #e4e4e7;
+  --badge-green-bg: #dcf3ea;
+  --badge-green-fg: #17584a;
+  --badge-blue-bg: #fbefd2;
+  --badge-blue-fg: #7a5b12;
+  --track: #dddcd8;
+  --shadow-card: 0 1px 2px rgb(23 88 74 / 0.04), 0 4px 16px rgb(23 88 74 / 0.06);
+  /* Home "main services" tiles (background / icon circle). */
+  --tile-mint: #eafaf5;
+  --tile-mint-icon: #cdeee2;
+  --tile-sand: #fff5e2;
+  --tile-sand-icon: #f9d995;
+  --tile-gray: #efefed;
+  --tile-gray-icon: #c6e3d4;
   --quran-size: 22px;
   /* Reader chrome: top bar height (its 1px border comes on top), and the bottom room every reader
-     page keeps free for the tab bar, the safe area and the audio player bar (--player-h). */
-  --topbar-h: 3.5rem;
-  --frame-pb: calc(5rem + env(safe-area-inset-bottom) + var(--player-h, 0px));
+     page keeps free for the floating tab bar, the safe area and the audio player bar (--player-h). */
+  --topbar-h: 4.25rem;
+  --frame-pb: calc(5.75rem + env(safe-area-inset-bottom) + var(--player-h, 0px));
   /* legacy aliases used across components */
   --card: var(--surface);
 }
 
 :root.dark {
-  --bg: #121212;
-  --surface: #1b1b1b;
-  --surface-2: #232323;
-  --border: #2c2c2c;
-  --fg: #f1f1f1;
-  --muted: #8d8d8d;
-  --accent: #4f8ff7;
-  --hero: #0c2754;
+  --bg: #0f1614;
+  --surface: #17201d;
+  --surface-2: #1f2a26;
+  --border: #2a3632;
+  --fg: #eef2f0;
+  --muted: #94a19b;
+  --accent: #5cc4a2;
+  --gold: #e3bd62;
+  --brand: #123f35;
+  --brand-fg: #ffffff;
+  --brand-gold: #e9c46a;
+  --hero: #134236;
   --hero-fg: #ffffff;
-  --hero-muted: #7aa9f7;
-  --primary-bg: #ffffff;
-  --primary-fg: #121212;
+  --hero-muted: #e9c46a;
+  --primary-bg: #2a8a6c;
+  --primary-fg: #ffffff;
   --mark: #6b5216;
   --mark-fg: #ffffff;
   --success: #16a34a;
   --danger: #f27272;
-  --badge-green-bg: #0f3a1d;
-  --badge-green-fg: #4ade80;
-  --badge-blue-bg: #0b2a55;
-  --badge-blue-fg: #6aa6ff;
-  --track: #2a2a2a;
+  --badge-green-bg: #12382e;
+  --badge-green-fg: #6fd3b0;
+  --badge-blue-bg: #3a2f14;
+  --badge-blue-fg: #e9c46a;
+  --track: #2b3632;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --tile-mint: #15302a;
+  --tile-mint-icon: #1f4a3e;
+  --tile-sand: #2f2818;
+  --tile-sand-icon: #57461d;
+  --tile-gray: #1f2826;
+  --tile-gray-icon: #2c4a3e;
 }
 
 html {
   scroll-behavior: smooth;
   /* Keeps the layout (and the top bar logo) from shifting when the menu locks page scrolling. */
   scrollbar-gutter: stable;
+}
+
+/* Scrollbars in the brand green (dark mode: the lighter accent green so it stays visible). */
+:root {
+  --scrollbar-thumb: var(--brand);
+  --scrollbar-track: var(--surface-2);
+}
+:root.dark {
+  --scrollbar-thumb: var(--accent);
+}
+/* Chrome / Edge / Safari: rounded thumb with a little inset. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+  border: 2px solid var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+/* Firefox (no ::-webkit-scrollbar): the standard properties. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
 }
 
 body {
@@ -108,7 +166,7 @@ mark.hl {
   padding: 0 0.1em;
 }
 
-/* Smooth jump to #ayah-… and keep it clear of the top bar. */
+/* Smooth jump to #ayah-â€¦ and keep it clear of the top bar. */
 [id^='ayah-'],
 [id^='dhikr-'] {
   scroll-margin-top: 5rem;
@@ -195,5 +253,164 @@ mark.hl {
   .ui-section-label {
     font-size: 0.8rem;
     color: var(--muted);
+  }
+  /* Borderless white card with a soft shadow (redesign). */
+  .ui-elevated {
+    background: var(--surface);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-card);
+  }
+}
+
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ Global motion â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   Page enter (app/template.tsx re-mounts per navigation) + card enter with a short stagger.
+   fill-mode `backwards` only: once an animation ends no transform is left on the element, so
+   `fixed` children (modals, sheets) are never trapped inside a transformed card. */
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* Long, gentle glide: the fade completes early (60%) while the card keeps settling, so it
+   lands softly. translate3d keeps it on the GPU. */
+@keyframes card-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0) scale(0.99);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+:root {
+  --ease-glide: cubic-bezier(0.25, 0.8, 0.25, 1);
+  --card-rise-duration: 1.1s;
+}
+.page-enter {
+  animation: page-fade 0.7s var(--ease-glide) backwards;
+}
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) {
+  animation: card-rise var(--card-rise-duration) var(--ease-glide) backwards;
+}
+/* Stagger siblings (cards in a list / grid); later ones start together. */
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(2) { animation-delay: 80ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(3) { animation-delay: 160ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(4) { animation-delay: 240ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(5) { animation-delay: 320ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(6) { animation-delay: 400ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(7) { animation-delay: 480ms; }
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(n + 8) { animation-delay: 560ms; }
+/* Cards inside list items (<li><Link class="ui-card">) stagger by their <li>. */
+li:nth-child(2) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 80ms; }
+li:nth-child(3) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 160ms; }
+li:nth-child(4) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 240ms; }
+li:nth-child(5) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 320ms; }
+li:nth-child(6) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 400ms; }
+li:nth-child(7) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 480ms; }
+li:nth-child(n + 8) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 560ms; }
+
+/* Scroll reveal (components/ScrollReveal.tsx): cards below the screen wait hidden, then rise
+   when they scroll into view. !important beats the nth-child stagger delays above. */
+[data-reveal='wait'] {
+  opacity: 0;
+  animation: none !important;
+}
+[data-reveal='in'] {
+  animation: card-rise var(--card-rise-duration) var(--ease-glide) var(--reveal-delay, 0ms) backwards !important;
+}
+
+/* Clickable cards lift a little on hover and press in on tap. */
+:where(a, button):where(.ui-card, .ui-elevated, .ui-hero) {
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+}
+@media (hover: hover) {
+  :where(a, button):where(.ui-card, .ui-elevated, .ui-hero):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.08);
+  }
+}
+:where(a, button):where(.ui-card, .ui-elevated, .ui-hero):active {
+  transform: scale(0.985);
+}
+/* Buttons and chips: smooth colour changes and a small press effect. */
+:where(.ui-chip, .ui-btn-primary) {
+  transition:
+    transform 0.15s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+:where(.ui-chip, .ui-btn-primary):active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal),
+  [data-reveal] {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  :where(a, button):where(.ui-card, .ui-elevated, .ui-hero, .ui-chip, .ui-btn-primary) {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* Green top bar: its icon buttons (menu, settings) render gold on the brand colour. */
+.topbar-actions button {
+  color: var(--brand-gold);
+}
+.topbar-actions button:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+/* Intro splash (components/IntroSplash.tsx): fades out once the app has hydrated. The CSS
+   animation is a safety net that hides it after a few seconds even if scripts never run. */
+@keyframes intro-auto-hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+.intro-splash {
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+  animation: intro-auto-hide 0.4s ease 4s forwards;
+}
+.intro-splash[data-hidden='true'] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+@keyframes intro-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.intro-logo {
+  animation: intro-rise 0.7s ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .intro-splash {
+    transition: none;
+  }
+  .intro-logo {
+    animation: none;
   }
 }

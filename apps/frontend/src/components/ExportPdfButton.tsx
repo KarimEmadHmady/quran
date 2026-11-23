@@ -24,7 +24,7 @@ export function ExportPdfButton({ className = '' }: { className?: string }) {
     } catch (e) {
       if (e instanceof ApiRequestError && e.status === 429) setError('تصدير كتير في وقت قصير. استنى دقيقة.');
       else if (e instanceof ApiRequestError && e.status === 503) setError('التصدير مش متاح على الخادم دلوقتي.');
-      else if (e instanceof ApiRequestError && e.status === 404) setError('آية في السلة مش موجودة. احذفها وجرّب تاني.');
+      else if (e instanceof ApiRequestError && e.status === 404) setError('آية في مختاراتي مش موجودة. احذفها وجرّب تاني.');
       else setError('تعذّر إنشاء ملف PDF.');
     } finally {
       setBusy(false);

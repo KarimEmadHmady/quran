@@ -16,7 +16,8 @@ export function KhatmaButton({ ayahId }: { ayahId: number }) {
   if (ayahId <= khatma.lastAyahId) {
     return (
       <span className="ui-chip !border-transparent !bg-[var(--badge-green-bg)] !text-[var(--badge-green-fg)]">
-        ✓ مقروءة
+        <Icon name="check" className="h-4 w-4" />
+        مقروءة
       </span>
     );
   }

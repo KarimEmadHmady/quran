@@ -15,20 +15,43 @@ const MATCH_LABEL: Record<SearchResult['matchType'], string> = {
 };
 
 /** A search result (design: muted "سورة - آية" line, ayah text, highlighted matches). */
-export function AyahCard({ result, onTafsir }: { result: SearchResult; /** Shown only when the ayah has a tafsir. */ onTafsir?: () => void }) {
+export function AyahCard({
+  result,
+  position,
+  onTafsir,
+}: {
+  result: SearchResult;
+  /** 1-based rank across all result pages (design: number circle; the top hit is green). */
+  position?: number;
+  /** Shown only when the ayah has a tafsir. */
+  onTafsir?: () => void;
+}) {
   const approximate = result.confidence !== 'high';
   return (
-    <article className="ui-card p-5">
-      <header className="mb-2 flex flex-wrap items-center justify-between gap-2 text-sm text-[var(--muted)]">
-        <span>
-          سورة {result.suraName} · آية <strong className="text-[var(--fg)]">{result.ayahNumber}</strong>
-          <span className="ms-2 text-xs" dir="ltr">
-            ({result.ref})
+    <article className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[0_2px_12px_rgb(0_0_0/0.04)]">
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-2 text-sm text-[var(--muted)]">
+        <span className="flex items-center gap-2">
+          {position !== undefined && (
+            <span
+              className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-xs font-semibold ${
+                position === 1 ? 'bg-[var(--tile-mint-icon)] text-[var(--accent)]' : 'bg-[var(--surface-2)] text-[var(--muted)]'
+              }`}
+            >
+              {position.toLocaleString('ar-EG')}
+            </span>
+          )}
+          <span>
+            {result.suraName} - آية {result.ayahNumber}
+            <span className="ms-2 text-xs" dir="ltr">
+              ({result.ref})
+            </span>
           </span>
         </span>
         <span className={`ui-badge ${approximate ? 'ui-badge-blue' : 'ui-badge-green'}`}>{MATCH_LABEL[result.matchType]}</span>
       </header>
-      <p className="quran-text">
+      {/* Design: matched words as soft rounded amber pills (scoped to this card). */}
+      <p className="quran-text [&_mark.hl]:rounded-lg [&_mark.hl]:px-2 [&_mark.hl]:py-1 [&_mark.hl]:[box-decoration-break:clone]">
+
         <HighlightedText text={result.textUthmani} highlights={result.highlights} />
       </p>
       {/* Phones: smaller chips (padding, gap, font, icon) so all three stay on one row; desktop unchanged. */}
