@@ -166,7 +166,7 @@ mark.hl {
   padding: 0 0.1em;
 }
 
-/* Smooth jump to #ayah-â€¦ and keep it clear of the top bar. */
+/* Smooth jump to #ayah-… and keep it clear of the top bar. */
 [id^='ayah-'],
 [id^='dhikr-'] {
   scroll-margin-top: 5rem;
@@ -262,7 +262,31 @@ mark.hl {
   }
 }
 
-/* â”€â”€â”€â”€â”€â”€â”€â”€â”€ Global motion â”€â”€â”€â”€â”€â”€â”€â”€â”€
+/* ───────── Long ayah lists (AyahList, vertical view) ─────────
+   A whole sura (al-Baqarah: 286 cards, ~5,600 elements) used to be laid out in one go when the
+   page opened, blocking scrolling for ~1s on a phone. content-visibility: auto lets the browser
+   skip style/layout/paint of off-screen cards until they come near the viewport; on screen
+   nothing changes. Until a card has rendered once, its height is ESTIMATED from its text length
+   (--ayah-chars, set inline) so the scrollbar, #ayah jumps and the "last page" scroll restore
+   stay accurate; measured fit (default font size): height ≈ base + 249 × chars ÷ text width
+   (≈13px average error). `auto` = once rendered, the real height is remembered.
+   contain-intrinsic-size is the CONTENT height: the card's own padding (p-5 = 40px) is added
+   on top, so --ayah-base excludes it (measured base: 144px phones / 128px from 640px, +2px to
+   cancel the measured under-estimate so long jumps don't drift). */
+.ayah-cv {
+  --ayah-k: 0.87; /* ≈ 249 / text width; text width = viewport − 72px, max 632px */
+  --ayah-base: 106px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(var(--ayah-base) + var(--ayah-chars, 150) * var(--ayah-k) * 1px);
+}
+@media (min-width: 375px) { .ayah-cv { --ayah-k: 0.8; } }
+@media (min-width: 410px) { .ayah-cv { --ayah-k: 0.72; } }
+@media (min-width: 460px) { .ayah-cv { --ayah-k: 0.64; } }
+@media (min-width: 520px) { .ayah-cv { --ayah-k: 0.55; } }
+@media (min-width: 640px) { .ayah-cv { --ayah-k: 0.46; --ayah-base: 89px; } }
+@media (min-width: 704px) { .ayah-cv { --ayah-k: 0.394; } }
+
+/* ───────── Global motion ─────────
    Page enter (app/template.tsx re-mounts per navigation) + card enter with a short stagger.
    fill-mode `backwards` only: once an animation ends no transform is left on the element, so
    `fixed` children (modals, sheets) are never trapped inside a transformed card. */
@@ -315,6 +339,13 @@ li:nth-child(5) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) 
 li:nth-child(6) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 400ms; }
 li:nth-child(7) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 480ms; }
 li:nth-child(n + 8) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) { animation-delay: 560ms; }
+/* Performance: from the 13th card of a list on, no load animation. Those cards start below
+   the screen, and ScrollReveal animates them when they scroll in ([data-reveal='in'] wins via
+   !important). Starting hundreds of animations at once (a whole sura) blocked the main thread. */
+:where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal):nth-child(n + 13),
+li:nth-child(n + 13) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reveal) {
+  animation: none;
+}
 
 /* Scroll reveal (components/ScrollReveal.tsx): cards below the screen wait hidden, then rise
    when they scroll into view. !important beats the nth-child stagger delays above. */
@@ -324,6 +355,10 @@ li:nth-child(n + 8) > :where(.ui-card, .ui-elevated, .ui-hero, .ui-row, .ui-reve
 }
 [data-reveal='in'] {
   animation: card-rise var(--card-rise-duration) var(--ease-glide) var(--reveal-delay, 0ms) backwards !important;
+}
+/* Skipped past (fast scroll / jump): shown at once, no animation. */
+[data-reveal='done'] {
+  animation: none !important;
 }
 
 /* Clickable cards lift a little on hover and press in on tap. */

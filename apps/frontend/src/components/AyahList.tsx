@@ -153,7 +153,9 @@ export function AyahList({
                   id={`ayah-${a.id}`}
                   data-ayah-id={a.id}
                   aria-current={playingId === a.id ? 'true' : undefined}
-                  className={`ui-elevated p-5 transition ${playingId === a.id ? 'ring-2 ring-[var(--accent)]/50' : ''}`}
+                  // Off-screen cards skip layout/paint (.ayah-cv); the text length sizes their placeholder.
+                  style={{ '--ayah-chars': textOf(a).length } as React.CSSProperties}
+                  className={`ayah-cv ui-elevated p-5 transition ${playingId === a.id ? 'ring-2 ring-[var(--accent)]/50' : ''}`}
                 >
                   {showRefs && (
                     <Link
